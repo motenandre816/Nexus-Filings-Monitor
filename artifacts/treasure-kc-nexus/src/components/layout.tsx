@@ -18,7 +18,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="h-16 flex items-center px-6 border-b border-sidebar-border gap-3">
           <Building2 className="w-6 h-6 text-sidebar-primary" />
           <div>
-            <div className="font-bold text-sm tracking-tight text-sidebar-primary-foreground">Treasure Network</div>
+            <div className="font-bold text-sm tracking-tight text-sidebar-primary-foreground">Treasure KC</div>
             <div className="text-[10px] text-sidebar-primary-foreground/70 uppercase font-semibold">Moten Global Solutions LLC</div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b bg-card flex items-center px-8 shadow-sm z-10">
-          <h1 className="text-xl font-bold text-card-foreground tracking-tight">Treasure KC Nexus</h1>
+          <h1 className="text-xl font-bold text-card-foreground tracking-tight">Treasure KC</h1>
         </header>
         <main className="flex-1 p-8 overflow-y-auto">
           {children}

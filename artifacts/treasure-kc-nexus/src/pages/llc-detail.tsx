@@ -202,7 +202,7 @@ export default function LlcDetail() {
               <Sparkles className="w-5 h-5 text-indigo-500" />
               Grok AI Outreach
             </CardTitle>
-            <CardDescription>Generate a tailored message for the Treasure Network rewards program.</CardDescription>
+            <CardDescription>Generate a tailored message for the Treasure KC rewards program.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col space-y-4">
             <div className="flex gap-4">

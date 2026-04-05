@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
 import { GenerateOutreachParams, GenerateOutreachBody, GenerateOutreachResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
+import { requireAuth } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
@@ -58,7 +59,7 @@ async function callGrok(prompt: string): Promise<string> {
 }
 
 // POST /llcs/:id/outreach
-router.post("/llcs/:id/outreach", async (req, res): Promise<void> => {
+router.post("/llcs/:id/outreach", requireAuth, async (req, res): Promise<void> => {
   const params = GenerateOutreachParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

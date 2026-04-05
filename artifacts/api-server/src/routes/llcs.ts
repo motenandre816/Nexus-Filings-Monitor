@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, desc, ilike, and, or, sql, count } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
 import { fireWebhook } from "../lib/webhook";
+import { requireAuth } from "../middlewares/requireAuth";
 import {
   GetLlcByIdParams,
   GetLlcsQueryParams,
@@ -154,7 +155,7 @@ router.get("/llcs/:id", async (req, res): Promise<void> => {
 });
 
 // POST /llcs/:id/recruit
-router.post("/llcs/:id/recruit", async (req, res): Promise<void> => {
+router.post("/llcs/:id/recruit", requireAuth, async (req, res): Promise<void> => {
   const params = MarkLlcRecruitedParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -183,7 +184,7 @@ router.post("/llcs/:id/recruit", async (req, res): Promise<void> => {
 });
 
 // POST /llcs/scrape
-router.post("/llcs/scrape", async (req, res): Promise<void> => {
+router.post("/llcs/scrape", requireAuth, async (req, res): Promise<void> => {
   const body = TriggerScrapeBody.safeParse(req.body);
   if (!body.success) {
     res.status(400).json({ error: body.error.message });

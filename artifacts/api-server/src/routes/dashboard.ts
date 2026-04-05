@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
+import { requireAuth } from "../middlewares/requireAuth";
 import {
   GetDashboardStatsResponse,
   GetRecentActivityQueryParams,
@@ -11,7 +12,7 @@ import {
 const router: IRouter = Router();
 
 // GET /dashboard/stats
-router.get("/dashboard/stats", async (req, res): Promise<void> => {
+router.get("/dashboard/stats", requireAuth, async (req, res): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
 
   const [{ total }] = await db.select({ total: count() }).from(llcFilingsTable);
@@ -53,7 +54,7 @@ router.get("/dashboard/stats", async (req, res): Promise<void> => {
 });
 
 // GET /dashboard/recent-activity
-router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
+router.get("/dashboard/recent-activity", requireAuth, async (req, res): Promise<void> => {
   const parsed = GetRecentActivityQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -74,7 +75,7 @@ router.get("/dashboard/recent-activity", async (req, res): Promise<void> => {
 });
 
 // GET /dashboard/by-city
-router.get("/dashboard/by-city", async (req, res): Promise<void> => {
+router.get("/dashboard/by-city", requireAuth, async (req, res): Promise<void> => {
   const rows = await db
     .select({
       city: llcFilingsTable.city,
