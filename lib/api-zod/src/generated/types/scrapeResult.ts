@@ -6,6 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface ScrapeResult {
+  state: string;
+  date: string;
+  found: number;
+  stored: number;
+  message: string;
 }

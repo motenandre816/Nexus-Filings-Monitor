@@ -230,6 +230,37 @@ paths:
                 items:
                   $ref: "#/components/schemas/CityCount"
 
+  /llcs/{id}/outreach:
+    post:
+      operationId: generateOutreach
+      tags: [llcs]
+      summary: Generate AI outreach message for an LLC using Grok
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutreachBody"
+      responses:
+        "200":
+          description: Generated outreach message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutreachResponse"
+        "404":
+          description: LLC not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -401,3 +432,29 @@ components:
         - city
         - state
         - count
+
+    OutreachBody:
+      type: object
+      properties:
+        tone:
+          type: string
+          description: Tone of message (friendly, professional, casual)
+          default: friendly
+      required: []
+
+    OutreachResponse:
+      type: object
+      properties:
+        llcId:
+          type: integer
+        llcName:
+          type: string
+        message:
+          type: string
+        tone:
+          type: string
+      required:
+        - llcId
+        - llcName
+        - message
+        - tone

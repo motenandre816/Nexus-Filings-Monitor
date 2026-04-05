@@ -5,7 +5,11 @@
  * Treasure KC Nexus API - LLC Discovery and Recruitment Platform
  * OpenAPI spec version: 0.1.0
  */
+import type { LlcFiling } from "./llcFiling";
 
-export interface HealthStatus {
-  status: string;
+export interface NewLlcsResponse {
+  date: string;
+  state: string;
+  total: number;
+  llcs: LlcFiling[];
 }
