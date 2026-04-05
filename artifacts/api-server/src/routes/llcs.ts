@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, ilike, and, or, sql, count } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
+import { fireWebhook } from "../lib/webhook";
 import {
   GetLlcByIdParams,
   GetLlcsQueryParams,
@@ -213,13 +214,43 @@ router.post("/llcs/scrape", async (req, res): Promise<void> => {
     }
   }
 
-  res.json(TriggerScrapeResponse.parse({
+  const result = TriggerScrapeResponse.parse({
     state: stateParam,
     date: dateStr,
     found: totalFound,
     stored: totalStored,
     message: `Scraped ${totalFound} LLCs from ${stateParam === "ALL" ? "KS + MO" : stateParam}, stored ${totalStored} new filings.`,
-  }));
+  });
+
+  // Fire webhook to portaltreasurekc.org with the new LLCs
+  if (totalStored > 0) {
+    const newLlcs = await db
+      .select()
+      .from(llcFilingsTable)
+      .where(eq(llcFilingsTable.filingDate, dateStr))
+      .orderBy(desc(llcFilingsTable.createdAt))
+      .limit(totalStored);
+
+    fireWebhook({
+      event: "new_llcs",
+      timestamp: new Date().toISOString(),
+      state: stateParam,
+      date: dateStr,
+      count: totalStored,
+      llcs: newLlcs.map(l => ({
+        id: l.id,
+        name: l.name,
+        state: l.state,
+        city: l.city,
+        filingDate: l.filingDate,
+        agentName: l.agentName,
+        agentAddress: l.agentAddress,
+        status: l.status,
+      })),
+    }).catch(() => {}); // fire-and-forget, errors logged inside
+  }
+
+  res.json(result);
 });
 
 function formatFiling(llc: typeof llcFilingsTable.$inferSelect) {
