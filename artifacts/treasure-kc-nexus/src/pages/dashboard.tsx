@@ -1,5 +1,8 @@
-import { useGetDashboardStats, useGetRecentActivity, useGetLlcsByCity } from "@workspace/api-client-react";
+import { useGetDashboardStats, useGetRecentActivity, useGetLlcsByCity, useGetNewLlcs, useMarkLlcRecruited, getGetDashboardStatsQueryKey } from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Building, MapPin, CheckCircle, Clock, FileText, Activity } from "lucide-react";
 import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
@@ -8,9 +11,29 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 
 export default function Dashboard() {
+  const queryClient = useQueryClient();
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
   const { data: activity, isLoading: activityLoading } = useGetRecentActivity({ limit: 5 });
   const { data: cityCounts, isLoading: cityLoading } = useGetLlcsByCity();
+  const { data: newLlcsResponse, isLoading: newLlcsLoading } = useGetNewLlcs({});
+  const recruitMutation = useMarkLlcRecruited();
+
+  const handleRecruit = (id: number) => {
+    recruitMutation.mutate({
+      id,
+      data: {
+        recruitedAt: new Date().toISOString(),
+        notes: "Hey new spot, join Treasure KC — earn free TKC for check-ins, your customers save $99."
+      }
+    }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetDashboardStatsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: ["/api/new_llcs"] });
+      }
+    });
+  };
+
+  const newLlcs = newLlcsResponse?.llcs || [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -18,6 +41,74 @@ export default function Dashboard() {
         <h2 className="text-2xl font-bold tracking-tight">Command Center</h2>
         <p className="text-muted-foreground">Overview of LLC filings and recruitment status.</p>
       </div>
+
+      <Card className="bg-card border-primary/20 shadow-md">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="flex items-center gap-2">
+            <CardTitle>New LLCs Today</CardTitle>
+            <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
+              {newLlcsLoading ? "..." : newLlcs.length} New
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-[340px] overflow-y-auto pr-2 custom-scrollbar">
+            {newLlcsLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : newLlcs.length > 0 ? (
+              <Table>
+                <TableHeader className="sticky top-0 bg-card z-10 shadow-sm">
+                  <TableRow>
+                    <TableHead>Business Name</TableHead>
+                    <TableHead>City</TableHead>
+                    <TableHead>State</TableHead>
+                    <TableHead>Filed</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {newLlcs.map((llc) => (
+                    <TableRow key={llc.id}>
+                      <TableCell className="font-medium">
+                        <Link href={`/llcs/${llc.id}`} className="hover:underline text-primary">
+                          {llc.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{llc.city || 'Unknown'}</TableCell>
+                      <TableCell>{llc.state}</TableCell>
+                      <TableCell>{format(new Date(llc.filingDate), "MMM d, yyyy")}</TableCell>
+                      <TableCell className="text-right">
+                        {llc.recruited ? (
+                          <Badge variant="default" className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20">Recruited</Badge>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleRecruit(llc.id)}
+                            disabled={recruitMutation.isPending}
+                          >
+                            Recruit
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-3">
+                <p>No new filings today yet — trigger a scrape to pull fresh data.</p>
+                <Link href="/scrape">
+                  <Button variant="outline" size="sm">Go to Scrape Portal</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card">

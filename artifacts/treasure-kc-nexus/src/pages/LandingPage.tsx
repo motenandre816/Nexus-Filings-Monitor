@@ -154,47 +154,124 @@ export default function LandingPage() {
 
         {/* Pricing */}
         <section className="py-24 bg-card/30 border-y border-white/5 relative">
-          <div className="max-w-4xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Transparent Pricing</h2>
-              <p className="text-muted-foreground text-lg">One simple tier for unlimited access.</p>
+              <p className="text-muted-foreground text-lg">Simple plans for unlimited access.</p>
             </div>
             
-            <div className="bg-card border border-primary/30 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl shadow-primary/5">
-              <div className="absolute top-0 right-0 p-8">
-                <Zap className="w-12 h-12 text-primary opacity-20" />
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+              {/* Starter Plan */}
+              <div className="bg-card border border-white/10 rounded-3xl p-8 relative flex flex-col shadow-xl">
+                <div className="space-y-6 flex-1">
+                  <h3 className="text-2xl font-bold text-white">Starter</h3>
+                  <div className="flex items-end gap-2">
+                    <span className="text-5xl font-bold text-white">$29</span>
+                    <span className="text-xl text-muted-foreground mb-1">/ month</span>
+                  </div>
+                  <p className="text-muted-foreground">Perfect for localized prospecting and testing.</p>
+                  
+                  <div className="space-y-4 pt-4">
+                    {[
+                      "Kansas & Missouri daily LLC pulls",
+                      "Up to 500 fresh leads per day",
+                      "JSON API: /api/fresh_llcs?state=KS",
+                      "Webhook push on each scrape",
+                      "Standard support"
+                    ].map((feature, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                        <span className="text-white/80">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="pt-8 mt-auto">
+                  <Link href="/sign-up" className="block w-full">
+                    <Button size="lg" variant="outline" className="w-full h-14 text-base border-white/10 hover:bg-white/5">
+                      Subscribe
+                    </Button>
+                  </Link>
+                </div>
               </div>
-              
-              <div className="flex flex-col md:flex-row gap-12 items-center">
-                <div className="flex-1 space-y-6">
-                  <h3 className="text-2xl font-bold text-white">Pro API Access</h3>
+
+              {/* Pro Plan */}
+              <div className="bg-card border border-primary rounded-3xl p-8 relative flex flex-col shadow-2xl shadow-primary/20 scale-100 md:scale-105 z-10 overflow-hidden">
+                <div className="absolute top-0 right-0 p-8">
+                  <Zap className="w-12 h-12 text-primary opacity-20" />
+                </div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-4 py-1 rounded-b-lg uppercase tracking-wider">
+                  Most Popular
+                </div>
+                
+                <div className="space-y-6 flex-1 pt-4">
+                  <h3 className="text-2xl font-bold text-white">Pro</h3>
                   <div className="flex items-end gap-2">
                     <span className="text-5xl font-bold text-white">$99</span>
                     <span className="text-xl text-muted-foreground mb-1">/ month</span>
                   </div>
                   <p className="text-muted-foreground">Everything you need to power your sales engine.</p>
+                  
+                  <div className="space-y-4 pt-4">
+                    {[
+                      "All states (KS + MO) + full data",
+                      "Unlimited leads per day",
+                      "JSON API + Grok AI auto-emails",
+                      "Instant webhook to your app",
+                      "Priority support",
+                      "Custom outreach templates"
+                    ].map((feature, i) => (
+                      <div key={i} className="flex items-start gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                        <span className="text-white/90 font-medium">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="pt-8 mt-auto">
                   <Link href="/sign-up" className="block w-full">
-                    <Button size="lg" className="w-full h-14 text-base bg-primary text-primary-foreground hover:bg-primary/90">
-                      Get API Access
+                    <Button size="lg" className="w-full h-14 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20">
+                      Subscribe
                     </Button>
                   </Link>
                 </div>
-                
-                <div className="flex-1 w-full space-y-4">
-                  {[
-                    "Live KS & MO LLC filings",
-                    "Real-time webhook delivery",
-                    "Historical data search portal",
-                    "Grok AI outreach generator",
-                    "Unlimited API requests",
-                    "Priority email support"
-                  ].map((feature, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                      <span className="text-white/90">{feature}</span>
-                    </div>
-                  ))}
+              </div>
+            </div>
+
+            <p className="text-center text-sm text-muted-foreground mb-24 max-w-xl mx-auto">
+              Payments powered by Stripe. Activate your subscription after creating your account.
+            </p>
+
+            {/* API Sample */}
+            <div className="max-w-4xl mx-auto text-center mb-8">
+              <h2 className="text-3xl font-bold text-white mb-4">Developer Ready API</h2>
+              <p className="text-muted-foreground text-lg mb-8">Direct JSON access to daily filings.</p>
+              
+              <div className="text-left rounded-2xl border border-white/10 bg-[#0d1117] p-6 shadow-2xl overflow-hidden">
+                <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-4">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                  <span className="ml-2 text-xs font-mono text-muted-foreground">GET /api/fresh_llcs?state=KS</span>
                 </div>
+                <pre className="text-sm font-mono text-gray-300 overflow-x-auto">
+{`{
+  "date": "2025-04-05",
+  "state": "KS",
+  "total": 12,
+  "llcs": [
+    {
+      "id": 1,
+      "name": "Heartland Ventures LLC",
+      "city": "Overland Park",
+      "state": "KS",
+      "address": "4821 Oak Ave, Overland Park, KS 66062",
+      "filingDate": "2025-04-05",
+      "filingId": "KS-2025-00841"
+    }
+  ]
+}`}
+                </pre>
               </div>
             </div>
           </div>

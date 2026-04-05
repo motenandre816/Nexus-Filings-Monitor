@@ -73,6 +73,49 @@ function simulateScrape(stateCode: string, dateStr: string, count: number): Arra
   return results;
 }
 
+// GET /fresh_llcs — public API product endpoint
+// Same as /new_llcs but intended for external API consumers
+router.get("/fresh_llcs", async (req, res): Promise<void> => {
+  const parsed = GetNewLlcsQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const { state = "ALL", date, limit = 50, offset = 0 } = parsed.data;
+
+  const today = new Date().toISOString().split("T")[0];
+  const targetDate = date ?? today;
+
+  const conditions = [eq(llcFilingsTable.filingDate, targetDate)];
+  if (state !== "ALL") {
+    conditions.push(eq(llcFilingsTable.state, state));
+  }
+
+  const [{ total }] = await db.select({ total: count() }).from(llcFilingsTable).where(and(...conditions));
+  const llcs = await db
+    .select()
+    .from(llcFilingsTable)
+    .where(and(...conditions))
+    .orderBy(desc(llcFilingsTable.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  res.json({
+    date: targetDate,
+    state,
+    total: Number(total),
+    llcs: llcs.map((l) => ({
+      id: l.id,
+      name: l.name,
+      city: l.city,
+      state: l.state,
+      address: l.agentAddress,
+      filingDate: l.filingDate,
+      filingId: l.filingId,
+    })),
+  });
+});
+
 // GET /new_llcs
 router.get("/new_llcs", async (req, res): Promise<void> => {
   const parsed = GetNewLlcsQueryParams.safeParse(req.query);
