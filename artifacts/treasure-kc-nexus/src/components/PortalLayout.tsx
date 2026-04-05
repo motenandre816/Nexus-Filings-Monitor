@@ -32,7 +32,7 @@ export function PortalLayout() {
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
             <span className="font-bold text-primary-foreground text-sm">TK</span>
           </div>
-          <span className="font-bold text-lg text-foreground tracking-tight">Treasure KC</span>
+          <span className="font-bold text-lg text-foreground tracking-tight">Treasure</span>
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
@@ -89,7 +89,7 @@ export function PortalLayout() {
             <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
               <span className="font-bold text-primary-foreground text-[10px]">TK</span>
             </div>
-            <span className="font-bold text-sm">Treasure KC</span>
+            <span className="font-bold text-sm">Treasure</span>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

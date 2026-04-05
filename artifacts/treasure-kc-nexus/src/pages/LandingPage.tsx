@@ -13,7 +13,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
               <span className="font-bold text-primary-foreground text-sm">TK</span>
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">Treasure KC</span>
+            <span className="font-bold text-xl tracking-tight text-white">Treasure</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/sign-in" className="text-sm font-medium text-muted-foreground hover:text-white transition-colors">
@@ -208,7 +208,7 @@ export default function LandingPage() {
               <span className="font-bold text-primary-foreground text-[10px]">TK</span>
             </div>
             <div>
-              <span className="font-bold text-sm text-white">Treasure KC</span>
+              <span className="font-bold text-sm text-white">Treasure</span>
               <span className="text-xs text-muted-foreground ml-2">A Treasure Network Company</span>
             </div>
           </div>

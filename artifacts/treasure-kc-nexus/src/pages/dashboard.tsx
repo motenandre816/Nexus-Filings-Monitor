@@ -53,7 +53,7 @@ export default function Dashboard() {
             {statsLoading ? <Skeleton className="h-7 w-20" /> : (
               <div className="text-2xl font-bold text-card-foreground" data-testid="stat-recruited">{stats?.recruitedCount.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground mt-1">In Treasure KC</p>
+            <p className="text-xs text-muted-foreground mt-1">In Treasure</p>
           </CardContent>
         </Card>
         <Card className="bg-card">

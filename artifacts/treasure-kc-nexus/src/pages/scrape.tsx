@@ -147,7 +147,7 @@ export default function ScrapeControl() {
                 <div className="flex items-center gap-3">
                   <Database className="w-5 h-5 text-muted-foreground" />
                   <div>
-                    <p className="font-medium text-sm">Treasure KC Portal</p>
+                    <p className="font-medium text-sm">Treasure Portal</p>
                     <p className="text-xs text-muted-foreground font-mono">portaltreasurekc.org/api/webhook</p>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export default function ScrapeControl() {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                When an LLC is marked as recruited, their details are automatically pushed to the Treasure KC portal via webhook to initiate the onboarding process.
+                When an LLC is marked as recruited, their details are automatically pushed to the Treasure portal via webhook to initiate the onboarding process.
               </p>
               <Button 
                 variant="outline" 
