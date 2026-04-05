@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Treasure KC Nexus API - LLC Discovery and Recruitment Platform
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: llcs
+    description: LLC filing operations
+  - name: dashboard
+    description: Dashboard statistics
 paths:
   /healthz:
     get:
@@ -24,6 +28,208 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /new_llcs:
+    get:
+      operationId: getNewLlcs
+      tags: [llcs]
+      summary: Get new LLC filings
+      description: Returns fresh LLC filings from Kansas and/or Missouri SOS records
+      parameters:
+        - name: state
+          in: query
+          description: State code (KS, MO, or ALL)
+          schema:
+            type: string
+            default: ALL
+        - name: date
+          in: query
+          description: Filing date filter (YYYY-MM-DD), defaults to yesterday
+          schema:
+            type: ["string", "null"]
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of new LLC filings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewLlcsResponse"
+
+  /llcs:
+    get:
+      operationId: getLlcs
+      tags: [llcs]
+      summary: List all stored LLC filings
+      description: Returns all LLC filings stored in the database with optional filters
+      parameters:
+        - name: state
+          in: query
+          description: Filter by state code (KS, MO)
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          description: Search by LLC name or city
+          schema:
+            type: ["string", "null"]
+        - name: limit
+          in: query
+          description: Maximum number of results
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: List of LLC filings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LlcListResponse"
+
+  /llcs/{id}:
+    get:
+      operationId: getLlcById
+      tags: [llcs]
+      summary: Get LLC by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: LLC filing detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LlcFiling"
+        "404":
+          description: LLC not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /llcs/{id}/recruit:
+    post:
+      operationId: markLlcRecruited
+      tags: [llcs]
+      summary: Mark an LLC as recruited / contacted
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecruitBody"
+      responses:
+        "200":
+          description: Updated LLC filing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LlcFiling"
+        "404":
+          description: LLC not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /llcs/scrape:
+    post:
+      operationId: triggerScrape
+      tags: [llcs]
+      summary: Trigger a manual scrape / data refresh
+      description: Runs the simulated scraper for the given state and stores results
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScrapeBody"
+      responses:
+        "200":
+          description: Scrape results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScrapeResult"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard summary statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent LLC filings activity feed
+      parameters:
+        - name: limit
+          in: query
+          description: Number of recent items
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Recent activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LlcFiling"
+
+  /dashboard/by-city:
+    get:
+      operationId: getLlcsByCity
+      tags: [dashboard]
+      summary: Get LLC counts grouped by city
+      responses:
+        "200":
+          description: City breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CityCount"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +240,164 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    LlcFiling:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        filingId:
+          type: ["string", "null"]
+        state:
+          type: string
+        status:
+          type: string
+        filingDate:
+          type: string
+        agentName:
+          type: ["string", "null"]
+        agentAddress:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        recruited:
+          type: boolean
+        recruitedAt:
+          type: ["string", "null"]
+        recruitNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - state
+        - status
+        - filingDate
+        - recruited
+        - createdAt
+
+    NewLlcsResponse:
+      type: object
+      properties:
+        date:
+          type: string
+        state:
+          type: string
+        total:
+          type: integer
+        llcs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LlcFiling"
+      required:
+        - date
+        - state
+        - total
+        - llcs
+
+    LlcListResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+        llcs:
+          type: array
+          items:
+            $ref: "#/components/schemas/LlcFiling"
+      required:
+        - total
+        - offset
+        - limit
+        - llcs
+
+    RecruitBody:
+      type: object
+      properties:
+        note:
+          type: ["string", "null"]
+      required: []
+
+    ScrapeBody:
+      type: object
+      properties:
+        state:
+          type: string
+          description: State to scrape (KS, MO, or ALL)
+          default: ALL
+        date:
+          type: ["string", "null"]
+          description: Date to scrape for (YYYY-MM-DD), defaults to today
+      required: []
+
+    ScrapeResult:
+      type: object
+      properties:
+        state:
+          type: string
+        date:
+          type: string
+        found:
+          type: integer
+        stored:
+          type: integer
+        message:
+          type: string
+      required:
+        - state
+        - date
+        - found
+        - stored
+        - message
+
+    DashboardStats:
+      type: object
+      properties:
+        totalLlcs:
+          type: integer
+        todayLlcs:
+          type: integer
+        kansasLlcs:
+          type: integer
+        missouriLlcs:
+          type: integer
+        recruitedCount:
+          type: integer
+        pendingRecruitment:
+          type: integer
+        lastScrapeAt:
+          type: ["string", "null"]
+      required:
+        - totalLlcs
+        - todayLlcs
+        - kansasLlcs
+        - missouriLlcs
+        - recruitedCount
+        - pendingRecruitment
+
+    CityCount:
+      type: object
+      properties:
+        city:
+          type: string
+        state:
+          type: string
+        count:
+          type: integer
+      required:
+        - city
+        - state
+        - count

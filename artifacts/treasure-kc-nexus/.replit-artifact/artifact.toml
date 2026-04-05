@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Treasure KC Nexus"
+version = "1.0.0"
+id = "artifacts/treasure-kc-nexus"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19086
+
+[services.development]
+run = "pnpm --filter @workspace/treasure-kc-nexus run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/treasure-kc-nexus", "run", "build" ]
+publicDir = "artifacts/treasure-kc-nexus/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19086"
+BASE_PATH = "/"

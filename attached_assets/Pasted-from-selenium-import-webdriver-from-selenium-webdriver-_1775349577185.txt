@@ -1,0 +1,58 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+import time
+import json
+from datetime import datetime
+
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+driver = webdriver.Chrome(options=options)
+
+# Kansas SOS
+url = "https://www.sos.ks.gov/eforms/BusinessEntity/Search.aspx"
+driver.get(url)
+
+# Wait for form
+wait = WebDriverWait(driver, 10)
+wait.until(EC.presence_of_element_located((By.ID, "entityName")))  # Inspect for real ID—may be "entityName" or "searchText"
+
+# Fill search: "LLC" to get recent
+driver.find_element(By.ID, "entityName").send_keys("LLC")  # Change ID if wrong
+driver.find_element(By.CSS_SELECTOR, "button ").click()  # Or ID for button
+
+time.sleep(5)  # Delay for results
+
+soup = BeautifulSoup(driver.page_source, 'html.parser')
+table = soup.find('table', id='resultsTable')  # Inspect for real ID/class
+
+if table:
+    rows = table.find_all('tr')[1: ]
+    today = datetime.now().strftime("%Y-%m-%d")
+    for row in rows:
+        cols = row.find_all('td')
+        if len(cols) >= 5:  # Assume columns: name, ID, status, date, agent
+            name = cols[0].text.strip()
+            filing_date = cols[3].text.strip()  # Adjust index for date column
+            agent_addr = cols[4 -2].strip() if ',' in agent_addr else "Unknown"  # Rough parse
+            if filing_date.startswith(today[:4]):  # Filter recent year—better if date column sortable
+                llcs.append({
+                    "name": name,
+                    "filing_date": filing_date,
+                    "agent_address": agent_addr,
+                    "city": city,
+                    "state": "KS"
+                })
+
+    with open('ks_fresh_llcs.json', 'w') as f:
+        json.dump(llcs, f, indent=4)
+    print(f"Found {len(llcs)} potential fresh LLCs in KS")
+else:
+    print("No table found—site changed or blocked.")
+
+driver.quit()
