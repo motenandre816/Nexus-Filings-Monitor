@@ -22,8 +22,7 @@ export default function Dashboard() {
     recruitMutation.mutate({
       id,
       data: {
-        recruitedAt: new Date().toISOString(),
-        notes: "Hey new spot, join Treasure KC — earn free TKC for check-ins, your customers save $99."
+        note: "Hey new spot, join Treasure KC—free TKC for check-ins, customers save $99."
       }
     }, {
       onSuccess: () => {

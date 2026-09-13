@@ -19,6 +19,45 @@ function stripBase(path: string): string {
 
 if (!clerkPubKey) throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY');
 
+const clerkAppearance = {
+  options: {
+    logoPlacement: "inside" as const,
+    logoLinkUrl: basePath || "/",
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: "#fbbf24",
+    colorForeground: "#17211d",
+    colorMutedForeground: "#64746b",
+    colorBackground: "#ffffff",
+    colorInput: "#ffffff",
+    colorInputForeground: "#17211d",
+    colorNeutral: "#d7e0da",
+    fontFamily: "Inter, sans-serif",
+    borderRadius: "0.75rem",
+  },
+  elements: {
+    rootBox: "w-full flex justify-center",
+    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden shadow-2xl",
+    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    headerTitle: "text-slate-900",
+    headerSubtitle: "text-slate-500",
+    socialButtonsBlockButtonText: "text-slate-700",
+    formFieldLabel: "text-slate-700",
+    footerActionLink: "text-amber-700 hover:text-amber-800",
+    footerActionText: "text-slate-500",
+    dividerText: "text-slate-400",
+    formButtonPrimary: "bg-amber-400 hover:bg-amber-500 text-slate-950",
+    formFieldInput: "border-slate-200 bg-white text-slate-900",
+    socialButtonsBlockButton: "border-slate-200 bg-white hover:bg-slate-50",
+    dividerLine: "bg-slate-200",
+    alert: "border-red-200 bg-red-50",
+    alertText: "text-red-700",
+    main: "bg-transparent",
+  },
+};
+
 function ClerkQueryClientCacheInvalidator() {
   const { addListener } = useClerk();
   const queryClient = useQueryClient();
@@ -76,6 +115,23 @@ function ClerkProviderWithRoutes() {
     <ClerkProvider
       publishableKey={clerkPubKey}
       proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      localization={{
+        signIn: {
+          start: {
+            title: "Sign in to Treasure",
+            subtitle: "Access your LLC data portal",
+          },
+        },
+        signUp: {
+          start: {
+            title: "Create your Treasure account",
+            subtitle: "Start discovering new businesses today",
+          },
+        },
+      }}
       routerPush={(to) => setLocation(stripBase(to))}
       routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
     >

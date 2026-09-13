@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Treasure">
+  <rect width="64" height="64" rx="14" fill="#fbbf24"/>
+  <path fill="#08231b" d="M17 18h30v8H36v21h-8V26H17z"/>
+</svg>

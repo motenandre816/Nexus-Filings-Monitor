@@ -1,0 +1,1 @@
+- [Clerk dependency repair](clerk-dependency-repair.md) — after changing Clerk packages, refresh the pnpm install tree before rebuilding the API.

@@ -30,3 +30,6 @@ timeoutMs = 20000
 [userenv.shared]
 PORTAL_WEBHOOK_URL = "https://portaltreasurekc.org"
 PORTAL_WEBHOOK_PATH = "/webhook/llcs"
+
+[nix]
+channel = "stable-25_05"

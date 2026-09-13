@@ -121,6 +121,26 @@ export type GetNewLlcsParams = {
   offset?: number;
 };
 
+export type GetFreshLlcsParams = {
+  /**
+   * State code (KS, MO, or ALL)
+   */
+  state?: string;
+  /**
+   * Filing date filter (YYYY-MM-DD), defaults to today
+   * @nullable
+   */
+  date?: string | null;
+  /**
+   * Maximum number of results to return
+   */
+  limit?: number;
+  /**
+   * Pagination offset
+   */
+  offset?: number;
+};
+
 export type GetLlcsParams = {
   /**
    * Filter by state code (KS, MO)

@@ -66,6 +66,56 @@ export const GetNewLlcsResponse = zod.object({
 });
 
 /**
+ * Public JSON endpoint for the latest daily LLC filing feed
+ * @summary Get today's fresh LLC filings
+ */
+export const getFreshLlcsQueryStateDefault = `ALL`;
+export const getFreshLlcsQueryLimitDefault = 50;
+export const getFreshLlcsQueryOffsetDefault = 0;
+
+export const GetFreshLlcsQueryParams = zod.object({
+  state: zod.coerce
+    .string()
+    .default(getFreshLlcsQueryStateDefault)
+    .describe("State code (KS, MO, or ALL)"),
+  date: zod.coerce
+    .string()
+    .nullish()
+    .describe("Filing date filter (YYYY-MM-DD), defaults to today"),
+  limit: zod.coerce
+    .number()
+    .default(getFreshLlcsQueryLimitDefault)
+    .describe("Maximum number of results to return"),
+  offset: zod.coerce
+    .number()
+    .default(getFreshLlcsQueryOffsetDefault)
+    .describe("Pagination offset"),
+});
+
+export const GetFreshLlcsResponse = zod.object({
+  date: zod.string(),
+  state: zod.string(),
+  total: zod.number(),
+  llcs: zod.array(
+    zod.object({
+      id: zod.number(),
+      name: zod.string(),
+      filingId: zod.string().nullish(),
+      state: zod.string(),
+      status: zod.string(),
+      filingDate: zod.string(),
+      agentName: zod.string().nullish(),
+      agentAddress: zod.string().nullish(),
+      city: zod.string().nullish(),
+      recruited: zod.boolean(),
+      recruitedAt: zod.string().nullish(),
+      recruitNote: zod.string().nullish(),
+      createdAt: zod.string(),
+    }),
+  ),
+});
+
+/**
  * Returns all LLC filings stored in the database with optional filters
  * @summary List all stored LLC filings
  */

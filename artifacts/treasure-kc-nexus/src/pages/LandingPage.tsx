@@ -160,24 +160,27 @@ export default function LandingPage() {
               <p className="text-muted-foreground text-lg">Simple plans for unlimited access.</p>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
+             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-16">
               {/* Starter Plan */}
-              <div className="bg-card border border-white/10 rounded-3xl p-8 relative flex flex-col shadow-xl">
+               <div className="bg-card border border-primary/30 rounded-3xl p-8 relative flex flex-col shadow-xl">
                 <div className="space-y-6 flex-1">
-                  <h3 className="text-2xl font-bold text-white">Starter</h3>
+                   <div className="flex items-center justify-between gap-4">
+                     <h3 className="text-2xl font-bold text-white">Free</h3>
+                     <span className="text-xs font-semibold uppercase tracking-wider text-primary">No card required</span>
+                   </div>
                   <div className="flex items-end gap-2">
-                    <span className="text-5xl font-bold text-white">$29</span>
-                    <span className="text-xl text-muted-foreground mb-1">/ month</span>
+                     <span className="text-5xl font-bold text-white">$0</span>
+                     <span className="text-xl text-muted-foreground mb-1">forever</span>
                   </div>
-                  <p className="text-muted-foreground">Perfect for localized prospecting and testing.</p>
+                   <p className="text-muted-foreground">Explore the platform and test the API before you pay.</p>
                   
                   <div className="space-y-4 pt-4">
                     {[
-                      "Kansas & Missouri daily LLC pulls",
-                      "Up to 500 fresh leads per day",
-                      "JSON API: /api/fresh_llcs?state=KS",
-                      "Webhook push on each scrape",
-                      "Standard support"
+                       "Preview KS + MO LLC filings",
+                       "Up to 25 leads per request",
+                       "JSON API: /api/fresh_llcs?state=KS",
+                       "Dashboard access and manual refresh",
+                       "No payment required"
                     ].map((feature, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
@@ -189,7 +192,7 @@ export default function LandingPage() {
                 <div className="pt-8 mt-auto">
                   <Link href="/sign-up" className="block w-full">
                     <Button size="lg" variant="outline" className="w-full h-14 text-base border-white/10 hover:bg-white/5">
-                      Subscribe
+                       Start Free
                     </Button>
                   </Link>
                 </div>
@@ -214,9 +217,9 @@ export default function LandingPage() {
                   
                   <div className="space-y-4 pt-4">
                     {[
-                      "All states (KS + MO) + full data",
-                      "Unlimited leads per day",
-                      "JSON API + Grok AI auto-emails",
+                       "All states + full daily data",
+                       "Higher API limits",
+                       "JSON API + Grok AI outreach",
                       "Instant webhook to your app",
                       "Priority support",
                       "Custom outreach templates"
@@ -231,15 +234,15 @@ export default function LandingPage() {
                 <div className="pt-8 mt-auto">
                   <Link href="/sign-up" className="block w-full">
                     <Button size="lg" className="w-full h-14 text-base bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/20">
-                      Subscribe
+                       Contact Us
                     </Button>
                   </Link>
                 </div>
               </div>
             </div>
 
-            <p className="text-center text-sm text-muted-foreground mb-24 max-w-xl mx-auto">
-              Payments powered by Stripe. Activate your subscription after creating your account.
+             <p className="text-center text-sm text-muted-foreground mb-24 max-w-xl mx-auto">
+               Start free with no credit card. Paid plans can be activated later when billing is connected.
             </p>
 
             {/* API Sample */}

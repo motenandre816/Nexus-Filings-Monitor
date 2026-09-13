@@ -9,6 +9,7 @@
 export * from "./cityCount";
 export * from "./dashboardStats";
 export * from "./errorResponse";
+export * from "./getFreshLlcsParams";
 export * from "./getLlcsParams";
 export * from "./getNewLlcsParams";
 export * from "./getRecentActivityParams";

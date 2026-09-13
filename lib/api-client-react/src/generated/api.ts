@@ -20,6 +20,7 @@ import type {
   CityCount,
   DashboardStats,
   ErrorResponse,
+  GetFreshLlcsParams,
   GetLlcsParams,
   GetNewLlcsParams,
   GetRecentActivityParams,
@@ -206,6 +207,101 @@ export function useGetNewLlcs<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getGetNewLlcsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Public JSON endpoint for the latest daily LLC filing feed
+ * @summary Get today's fresh LLC filings
+ */
+export const getGetFreshLlcsUrl = (params?: GetFreshLlcsParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/fresh_llcs?${stringifiedParams}`
+    : `/api/fresh_llcs`;
+};
+
+export const getFreshLlcs = async (
+  params?: GetFreshLlcsParams,
+  options?: RequestInit,
+): Promise<NewLlcsResponse> => {
+  return customFetch<NewLlcsResponse>(getGetFreshLlcsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFreshLlcsQueryKey = (params?: GetFreshLlcsParams) => {
+  return [`/api/fresh_llcs`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetFreshLlcsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFreshLlcs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetFreshLlcsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getFreshLlcs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetFreshLlcsQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getFreshLlcs>>> = ({
+    signal,
+  }) => getFreshLlcs(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFreshLlcs>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFreshLlcsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFreshLlcs>>
+>;
+export type GetFreshLlcsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get today's fresh LLC filings
+ */
+
+export function useGetFreshLlcs<
+  TData = Awaited<ReturnType<typeof getFreshLlcs>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: GetFreshLlcsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getFreshLlcs>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFreshLlcsQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
