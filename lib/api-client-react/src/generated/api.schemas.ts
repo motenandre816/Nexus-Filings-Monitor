@@ -64,12 +64,52 @@ export interface ScrapeBody {
   date?: string | null;
 }
 
+export type SourceRefreshResultStatus =
+  (typeof SourceRefreshResultStatus)[keyof typeof SourceRefreshResultStatus];
+
+export const SourceRefreshResultStatus = {
+  success: "success",
+  failed: "failed",
+} as const;
+
+export interface SourceRefreshResult {
+  state: string;
+  sourceUrl: string;
+  status: SourceRefreshResultStatus;
+  found: number;
+  stored: number;
+  /** @nullable */
+  error?: string | null;
+  startedAt: string;
+  completedAt: string;
+}
+
 export interface ScrapeResult {
   state: string;
   date: string;
   found: number;
   stored: number;
   message: string;
+  sources: SourceRefreshResult[];
+}
+
+export type SourceHealthStatus =
+  (typeof SourceHealthStatus)[keyof typeof SourceHealthStatus];
+
+export const SourceHealthStatus = {
+  success: "success",
+  failed: "failed",
+} as const;
+
+export interface SourceHealth {
+  state: string;
+  sourceUrl: string;
+  status: SourceHealthStatus;
+  found: number;
+  stored: number;
+  /** @nullable */
+  error?: string | null;
+  lastRunAt: string;
 }
 
 export interface DashboardStats {
@@ -81,6 +121,9 @@ export interface DashboardStats {
   pendingRecruitment: number;
   /** @nullable */
   lastScrapeAt?: string | null;
+  /** @nullable */
+  lastRefreshAt?: string | null;
+  sourceHealth?: SourceHealth[];
 }
 
 export interface CityCount {

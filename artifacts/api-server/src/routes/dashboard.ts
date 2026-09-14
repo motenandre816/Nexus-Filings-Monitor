@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, count, sql } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
+import { getLatestSosRuns } from "../lib/sos";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   GetDashboardStatsResponse,
@@ -41,6 +42,13 @@ router.get("/dashboard/stats", requireAuth, async (req, res): Promise<void> => {
     .from(llcFilingsTable)
     .orderBy(desc(llcFilingsTable.createdAt))
     .limit(1);
+  const latestRuns = await getLatestSosRuns();
+  const lastRefreshAt = latestRuns.length > 0
+    ? latestRuns
+      .map((run) => run.completedAt)
+      .sort((a, b) => b.getTime() - a.getTime())[0]
+      .toISOString()
+    : null;
 
   res.json(GetDashboardStatsResponse.parse({
     totalLlcs: totalNum,
@@ -50,6 +58,16 @@ router.get("/dashboard/stats", requireAuth, async (req, res): Promise<void> => {
     recruitedCount: recruitedNum,
     pendingRecruitment: totalNum - recruitedNum,
     lastScrapeAt: lastRow ? lastRow.createdAt.toISOString() : null,
+    lastRefreshAt,
+    sourceHealth: latestRuns.map((run) => ({
+      state: run.state,
+      sourceUrl: run.sourceUrl,
+      status: run.status,
+      found: run.found,
+      stored: run.stored,
+      error: run.error,
+      lastRunAt: run.completedAt.toISOString(),
+    })),
   }));
 });
 

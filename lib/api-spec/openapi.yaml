@@ -203,7 +203,7 @@ paths:
       operationId: triggerScrape
       tags: [llcs]
       summary: Trigger a manual scrape / data refresh
-      description: Runs the simulated scraper for the given state and stores results
+      description: Fetches configured Kansas and Missouri Secretary of State sources for the given state and stores normalized results
       requestBody:
         required: true
         content:
@@ -412,6 +412,35 @@ components:
           description: Date to scrape for (YYYY-MM-DD), defaults to today
       required: []
 
+    SourceRefreshResult:
+      type: object
+      properties:
+        state:
+          type: string
+        sourceUrl:
+          type: string
+        status:
+          type: string
+          enum: [success, failed]
+        found:
+          type: integer
+        stored:
+          type: integer
+        error:
+          type: ["string", "null"]
+        startedAt:
+          type: string
+        completedAt:
+          type: string
+      required:
+        - state
+        - sourceUrl
+        - status
+        - found
+        - stored
+        - startedAt
+        - completedAt
+
     ScrapeResult:
       type: object
       properties:
@@ -425,12 +454,43 @@ components:
           type: integer
         message:
           type: string
+        sources:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceRefreshResult"
       required:
         - state
         - date
         - found
         - stored
         - message
+        - sources
+
+    SourceHealth:
+      type: object
+      properties:
+        state:
+          type: string
+        sourceUrl:
+          type: string
+        status:
+          type: string
+          enum: [success, failed]
+        found:
+          type: integer
+        stored:
+          type: integer
+        error:
+          type: ["string", "null"]
+        lastRunAt:
+          type: string
+      required:
+        - state
+        - sourceUrl
+        - status
+        - found
+        - stored
+        - lastRunAt
 
     DashboardStats:
       type: object
@@ -449,6 +509,12 @@ components:
           type: integer
         lastScrapeAt:
           type: ["string", "null"]
+        lastRefreshAt:
+          type: ["string", "null"]
+        sourceHealth:
+          type: array
+          items:
+            $ref: "#/components/schemas/SourceHealth"
       required:
         - totalLlcs
         - todayLlcs

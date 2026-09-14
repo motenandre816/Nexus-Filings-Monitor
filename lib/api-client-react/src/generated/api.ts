@@ -572,7 +572,7 @@ export const useMarkLlcRecruited = <
 };
 
 /**
- * Runs the simulated scraper for the given state and stores results
+ * Fetches configured Kansas and Missouri Secretary of State sources for the given state and stores normalized results
  * @summary Trigger a manual scrape / data refresh
  */
 export const getTriggerScrapeUrl = () => {

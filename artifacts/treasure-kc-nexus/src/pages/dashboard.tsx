@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Building, MapPin, CheckCircle, Clock, FileText, Activity } from "lucide-react";
+import { Building, MapPin, CheckCircle, Clock, FileText, Activity, AlertTriangle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -159,6 +159,48 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="bg-card">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="text-base">SOS Source Health</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats?.lastRefreshAt
+                ? `Last refresh ${format(new Date(stats.lastRefreshAt), "MMM d, yyyy h:mm a")}`
+                : "No automated refresh has completed yet"}
+            </p>
+          </div>
+          <RefreshCw className="w-4 h-4 text-primary" />
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2">
+          {statsLoading ? (
+            <>
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+            </>
+          ) : stats?.sourceHealth && stats.sourceHealth.length > 0 ? (
+            stats.sourceHealth.map((source) => (
+              <div key={source.state} className="flex items-start justify-between gap-3 rounded-md border p-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{source.state === "KS" ? "Kansas" : "Missouri"} Secretary of State</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {source.status === "success"
+                      ? `${source.found} found · ${source.stored} new`
+                      : source.error || "Source refresh failed"}
+                  </p>
+                </div>
+                {source.status === "success" ? (
+                  <Badge variant="default" className="bg-green-500/10 text-green-600 hover:bg-green-500/20">Healthy</Badge>
+                ) : (
+                  <Badge variant="destructive" className="gap-1"><AlertTriangle className="w-3 h-3" /> Failed</Badge>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground md:col-span-2">Waiting for the first daily source refresh.</p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4 bg-card">

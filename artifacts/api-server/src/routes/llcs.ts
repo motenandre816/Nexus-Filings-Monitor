@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, desc, ilike, and, or, sql, count } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
 import { fireWebhook } from "../lib/webhook";
+import { runSosRefresh, type SosState } from "../lib/sos";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   GetLlcByIdParams,
@@ -18,60 +19,6 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
-
-// --- Simulated scraper data ---
-const KS_CITIES = ["Kansas City", "Overland Park", "Olathe", "Wichita", "Topeka", "Lawrence", "Shawnee", "Lenexa", "Manhattan", "Salina"];
-const MO_CITIES = ["Kansas City", "St. Louis", "Springfield", "Columbia", "Independence", "Lee's Summit", "O'Fallon", "St. Joseph", "Blue Springs", "Joplin"];
-const BUSINESS_TYPES = ["Consulting", "Services", "Solutions", "Enterprises", "Group", "Partners", "Holdings", "Ventures", "Technologies", "Media"];
-const FIRST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Martinez", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Moore", "Young", "Walker"];
-const STREET_NAMES = ["Main St", "Oak Ave", "Maple Dr", "Cedar Ln", "Elm Blvd", "Park Rd", "Lakeview Dr", "Hillside Ave", "River Rd", "Washington Blvd"];
-
-function randomFrom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function generateLlcName(): string {
-  const patterns = [
-    () => `${randomFrom(FIRST_NAMES)} ${randomFrom(BUSINESS_TYPES)} LLC`,
-    () => `KC ${randomFrom(BUSINESS_TYPES)} LLC`,
-    () => `${randomFrom(["Heartland", "Prairie", "Midwest", "Metro", "Sunflower", "Show-Me"])} ${randomFrom(BUSINESS_TYPES)} LLC`,
-    () => `${randomFrom(FIRST_NAMES)} & ${randomFrom(FIRST_NAMES)} ${randomFrom(BUSINESS_TYPES)} LLC`,
-  ];
-  return randomFrom(patterns)();
-}
-
-function generateAgent(city: string, stateCode: string): { name: string; address: string } {
-  const num = Math.floor(Math.random() * 9900) + 100;
-  const street = randomFrom(STREET_NAMES);
-  const zip = stateCode === "KS" ? `6${Math.floor(Math.random() * 9000) + 1000}` : `6${Math.floor(Math.random() * 4000) + 4000}`;
-  return {
-    name: `${randomFrom(FIRST_NAMES)} ${randomFrom(FIRST_NAMES)}`,
-    address: `${num} ${street}, ${city}, ${stateCode} ${zip}`,
-  };
-}
-
-function simulateScrape(stateCode: string, dateStr: string, count: number): Array<{
-  name: string; filingId: string; state: string; status: string;
-  filingDate: string; agentName: string; agentAddress: string; city: string;
-}> {
-  const cities = stateCode === "KS" ? KS_CITIES : MO_CITIES;
-  const results = [];
-  for (let i = 0; i < count; i++) {
-    const city = randomFrom(cities);
-    const agent = generateAgent(city, stateCode);
-    results.push({
-      name: generateLlcName(),
-      filingId: `${stateCode}-${dateStr.replace(/-/g, "")}-${String(i + 1).padStart(4, "0")}`,
-      state: stateCode,
-      status: "Active",
-      filingDate: dateStr,
-      agentName: agent.name,
-      agentAddress: agent.address,
-      city,
-    });
-  }
-  return results;
-}
 
 // GET /fresh_llcs — public API product endpoint
 // Same as /new_llcs but intended for external API consumers
@@ -104,15 +51,7 @@ router.get("/fresh_llcs", async (req, res): Promise<void> => {
     date: targetDate,
     state,
     total: Number(total),
-    llcs: llcs.map((l) => ({
-      id: l.id,
-      name: l.name,
-      city: l.city,
-      state: l.state,
-      address: l.agentAddress,
-      filingDate: l.filingDate,
-      filingId: l.filingId,
-    })),
+    llcs: llcs.map(formatFiling),
   });
 });
 
@@ -236,34 +175,25 @@ router.post("/llcs/scrape", requireAuth, async (req, res): Promise<void> => {
   const stateParam = body.data.state ?? "ALL";
   const today = new Date().toISOString().split("T")[0];
   const dateStr = body.data.date ?? today;
-  const statesToScrape = stateParam === "ALL" ? ["KS", "MO"] : [stateParam];
-
-  let totalFound = 0;
-  let totalStored = 0;
-
-  for (const st of statesToScrape) {
-    const count = Math.floor(Math.random() * 15) + 8;
-    const scraped = simulateScrape(st, dateStr, count);
-    totalFound += scraped.length;
-
-    for (const item of scraped) {
-      const existing = await db
-        .select({ id: llcFilingsTable.id })
-        .from(llcFilingsTable)
-        .where(and(eq(llcFilingsTable.filingId, item.filingId), eq(llcFilingsTable.state, item.state)));
-      if (existing.length === 0) {
-        await db.insert(llcFilingsTable).values(item);
-        totalStored++;
-      }
-    }
+  if (stateParam !== "ALL" && stateParam !== "KS" && stateParam !== "MO") {
+    res.status(400).json({ error: "state must be KS, MO, or ALL" });
+    return;
   }
+  const statesToScrape: SosState[] = stateParam === "ALL" ? ["KS", "MO"] : [stateParam];
+  const sources = await runSosRefresh(statesToScrape, dateStr, "manual");
+  const totalFound = sources.reduce((sum, source) => sum + source.found, 0);
+  const totalStored = sources.reduce((sum, source) => sum + source.stored, 0);
+  const failedSources = sources.filter((source) => source.status === "failed");
 
   const result = TriggerScrapeResponse.parse({
     state: stateParam,
     date: dateStr,
     found: totalFound,
     stored: totalStored,
-    message: `Scraped ${totalFound} LLCs from ${stateParam === "ALL" ? "KS + MO" : stateParam}, stored ${totalStored} new filings.`,
+    message: failedSources.length > 0
+      ? `Refresh completed with ${failedSources.length} source failure(s); found ${totalFound} filings and stored ${totalStored} new filings.`
+      : `Fetched ${totalFound} LLCs from ${stateParam === "ALL" ? "KS + MO" : stateParam}, stored ${totalStored} new filings.`,
+    sources,
   });
 
   // Fire webhook to portaltreasurekc.org with the new LLCs
@@ -271,7 +201,10 @@ router.post("/llcs/scrape", requireAuth, async (req, res): Promise<void> => {
     const newLlcs = await db
       .select()
       .from(llcFilingsTable)
-      .where(eq(llcFilingsTable.filingDate, dateStr))
+      .where(and(
+        eq(llcFilingsTable.filingDate, dateStr),
+        stateParam === "ALL" ? undefined : eq(llcFilingsTable.state, stateParam),
+      ))
       .orderBy(desc(llcFilingsTable.createdAt))
       .limit(totalStored);
 

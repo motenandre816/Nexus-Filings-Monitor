@@ -5,13 +5,15 @@
  * Treasure KC Nexus API - LLC Discovery and Recruitment Platform
  * OpenAPI spec version: 0.1.0
  */
-import type { SourceRefreshResult } from "./sourceRefreshResult";
+import type { SourceHealthStatus } from "./sourceHealthStatus";
 
-export interface ScrapeResult {
+export interface SourceHealth {
   state: string;
-  date: string;
+  sourceUrl: string;
+  status: SourceHealthStatus;
   found: number;
   stored: number;
-  message: string;
-  sources: SourceRefreshResult[];
+  /** @nullable */
+  error?: string | null;
+  lastRunAt: string;
 }

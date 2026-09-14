@@ -212,7 +212,7 @@ export const MarkLlcRecruitedResponse = zod.object({
 });
 
 /**
- * Runs the simulated scraper for the given state and stores results
+ * Fetches configured Kansas and Missouri Secretary of State sources for the given state and stores normalized results
  * @summary Trigger a manual scrape / data refresh
  */
 export const triggerScrapeBodyStateDefault = `ALL`;
@@ -234,6 +234,18 @@ export const TriggerScrapeResponse = zod.object({
   found: zod.number(),
   stored: zod.number(),
   message: zod.string(),
+  sources: zod.array(
+    zod.object({
+      state: zod.string(),
+      sourceUrl: zod.string(),
+      status: zod.enum(["success", "failed"]),
+      found: zod.number(),
+      stored: zod.number(),
+      error: zod.string().nullish(),
+      startedAt: zod.string(),
+      completedAt: zod.string(),
+    }),
+  ),
 });
 
 /**
@@ -247,6 +259,20 @@ export const GetDashboardStatsResponse = zod.object({
   recruitedCount: zod.number(),
   pendingRecruitment: zod.number(),
   lastScrapeAt: zod.string().nullish(),
+  lastRefreshAt: zod.string().nullish(),
+  sourceHealth: zod
+    .array(
+      zod.object({
+        state: zod.string(),
+        sourceUrl: zod.string(),
+        status: zod.enum(["success", "failed"]),
+        found: zod.number(),
+        stored: zod.number(),
+        error: zod.string().nullish(),
+        lastRunAt: zod.string(),
+      }),
+    )
+    .optional(),
 });
 
 /**

@@ -22,3 +22,7 @@ export * from "./outreachResponse";
 export * from "./recruitBody";
 export * from "./scrapeBody";
 export * from "./scrapeResult";
+export * from "./sourceHealth";
+export * from "./sourceHealthStatus";
+export * from "./sourceRefreshResult";
+export * from "./sourceRefreshResultStatus";

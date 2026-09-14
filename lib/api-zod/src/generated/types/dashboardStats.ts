@@ -5,6 +5,7 @@
  * Treasure KC Nexus API - LLC Discovery and Recruitment Platform
  * OpenAPI spec version: 0.1.0
  */
+import type { SourceHealth } from "./sourceHealth";
 
 export interface DashboardStats {
   totalLlcs: number;
@@ -15,4 +16,7 @@ export interface DashboardStats {
   pendingRecruitment: number;
   /** @nullable */
   lastScrapeAt?: string | null;
+  /** @nullable */
+  lastRefreshAt?: string | null;
+  sourceHealth?: SourceHealth[];
 }

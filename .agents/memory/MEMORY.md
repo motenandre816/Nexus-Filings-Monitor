@@ -1,1 +1,2 @@
 - [Clerk dependency repair](clerk-dependency-repair.md) — after changing Clerk packages, refresh the pnpm install tree before rebuilding the API.
+- [SOS source access](sos-source-access.md) — official KS/MO search pages are interactive or bot-protected; use a configurable SOS-backed feed adapter until direct exports are available.
