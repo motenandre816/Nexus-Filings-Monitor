@@ -33,6 +33,9 @@ import type {
   RecruitBody,
   ScrapeBody,
   ScrapeResult,
+  WebhookConfig,
+  WebhookTestResponse,
+  WorkerIngestionRunsResponse,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -994,3 +997,238 @@ export const useGenerateOutreach = <
 > => {
   return useMutation(getGenerateOutreachMutationOptions(options));
 };
+
+/**
+ * @summary Get webhook configuration
+ */
+export const getGetWebhookConfigUrl = () => {
+  return `/api/webhook/config`;
+};
+
+export const getWebhookConfig = async (
+  options?: RequestInit,
+): Promise<WebhookConfig> => {
+  return customFetch<WebhookConfig>(getGetWebhookConfigUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWebhookConfigQueryKey = () => {
+  return [`/api/webhook/config`] as const;
+};
+
+export const getGetWebhookConfigQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWebhookConfig>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWebhookConfig>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWebhookConfigQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWebhookConfig>>
+  > = ({ signal }) => getWebhookConfig({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWebhookConfig>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWebhookConfigQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWebhookConfig>>
+>;
+export type GetWebhookConfigQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get webhook configuration
+ */
+
+export function useGetWebhookConfig<
+  TData = Awaited<ReturnType<typeof getWebhookConfig>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWebhookConfig>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWebhookConfigQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Send a test webhook payload
+ */
+export const getTestWebhookUrl = () => {
+  return `/api/webhook/test`;
+};
+
+export const testWebhook = async (
+  options?: RequestInit,
+): Promise<WebhookTestResponse> => {
+  return customFetch<WebhookTestResponse>(getTestWebhookUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getTestWebhookMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testWebhook>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof testWebhook>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["testWebhook"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof testWebhook>>,
+    void
+  > = () => {
+    return testWebhook(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TestWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof testWebhook>>
+>;
+
+export type TestWebhookMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Send a test webhook payload
+ */
+export const useTestWebhook = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testWebhook>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof testWebhook>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getTestWebhookMutationOptions(options));
+};
+
+/**
+ * @summary Get ingestion worker run status
+ */
+export const getGetWorkerIngestionRunsUrl = () => {
+  return `/api/worker/ingestion-runs`;
+};
+
+export const getWorkerIngestionRuns = async (
+  options?: RequestInit,
+): Promise<WorkerIngestionRunsResponse> => {
+  return customFetch<WorkerIngestionRunsResponse>(
+    getGetWorkerIngestionRunsUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkerIngestionRunsQueryKey = () => {
+  return [`/api/worker/ingestion-runs`] as const;
+};
+
+export const getGetWorkerIngestionRunsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+  TError = ErrorType<WebhookTestResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWorkerIngestionRunsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>
+  > = ({ signal }) => getWorkerIngestionRuns({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWorkerIngestionRunsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkerIngestionRuns>>
+>;
+export type GetWorkerIngestionRunsQueryError = ErrorType<WebhookTestResponse>;
+
+/**
+ * @summary Get ingestion worker run status
+ */
+
+export function useGetWorkerIngestionRuns<
+  TData = Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+  TError = ErrorType<WebhookTestResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWorkerIngestionRunsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

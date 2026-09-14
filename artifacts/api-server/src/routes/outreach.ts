@@ -4,6 +4,7 @@ import { db, llcFilingsTable } from "@workspace/db";
 import { GenerateOutreachParams, GenerateOutreachBody, GenerateOutreachResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
 import { requireAuth } from "../middlewares/requireAuth";
+import { env } from "../lib/env";
 
 const router: IRouter = Router();
 
@@ -11,7 +12,7 @@ const GROK_API_URL = "https://api.x.ai/v1/responses";
 const GROK_MODEL = "grok-4-0709";
 
 async function callGrok(prompt: string): Promise<string> {
-  const apiKey = process.env.GROK_API_KEY;
+  const apiKey = env.grokApiKey;
   if (!apiKey) {
     throw new Error("GROK_API_KEY is not set");
   }

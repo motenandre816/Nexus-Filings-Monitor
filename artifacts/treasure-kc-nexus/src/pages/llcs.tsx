@@ -95,7 +95,7 @@ export default function BrowseLlcs() {
                   <TableRow 
                     key={llc.id} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => setLocation(`/llcs/${llc.id}`)}
+                    onClick={() => setLocation(`/portal/llcs/${llc.id}`)}
                     data-testid={`row-llc-${llc.id}`}
                   >
                     <TableCell className="font-medium text-card-foreground">

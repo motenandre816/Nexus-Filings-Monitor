@@ -6,9 +6,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Browse LLCs", href: "/llcs", icon: List },
-    { name: "Scraper Control", href: "/scrape", icon: FileSearch },
+    { name: "Dashboard", href: "/portal", icon: LayoutDashboard },
+    { name: "Browse LLCs", href: "/portal/llcs", icon: List },
+    { name: "Scraper Control", href: "/portal/scrape", icon: FileSearch },
   ];
 
   return (
@@ -25,7 +25,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="flex-1 overflow-y-auto py-4">
           <nav className="space-y-1 px-3">
             {navigation.map((item) => {
-              const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+              const isActive =
+                location === item.href ||
+                (item.href !== "/portal" && location.startsWith(`${item.href}/`));
               return (
                 <Link
                   key={item.name}
