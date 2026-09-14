@@ -1,4 +1,6 @@
 import express, { type Express } from "express";
+import fs from "fs";
+import path from "path";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import { clerkMiddleware } from "@clerk/express";
@@ -40,3 +42,23 @@ app.use(clerkMiddleware());
 app.use("/api", router);
 
 export default app;
+
+// Production static hosting: when SERVE_STATIC_DIR is set (Docker/Render),
+// serve the built SPA from the same origin so /api and the Clerk proxy stay
+// same-origin without a separate frontend host.
+const staticDir = process.env.SERVE_STATIC_DIR;
+if (staticDir) {
+  if (!fs.existsSync(staticDir)) {
+    logger.warn({ staticDir }, "SERVE_STATIC_DIR does not exist; skipping static serving");
+  } else {
+    app.use(express.static(staticDir));
+    // SPA fallback: any non-/api GET that reaches us is a client-side route.
+    app.use((req, res, next) => {
+      if (req.method !== "GET" || req.path.startsWith("/api/")) {
+        next();
+        return;
+      }
+      res.sendFile(path.join(staticDir, "index.html"));
+    });
+  }
+}

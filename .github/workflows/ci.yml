@@ -40,3 +40,15 @@ jobs:
           PORT: "3000"
           BASE_PATH: "/"
         run: pnpm -r --if-present run build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production Docker image
+        # Validates the Dockerfile used for Render deploys (see DEPLOY.md).
+        # Clerk vars are build-time inputs; placeholders exercise the same code path.
+        run: docker build
+          --build-arg VITE_CLERK_PUBLISHABLE_KEY=pk_test_ci_placeholder
+          --build-arg VITE_CLERK_PROXY_URL=https://placeholder.invalid/api/__clerk
+          -t nexus:ci .

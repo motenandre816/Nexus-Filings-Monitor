@@ -1,0 +1,44 @@
+# Render Blueprint: PostgreSQL + web service (API + SPA from one Docker image).
+# After merging, in Render: New -> Blueprint -> select this repo -> fill in the
+# sync:false secrets when prompted. Full instructions in DEPLOY.md.
+
+databases:
+  - name: nexus-db
+    databaseName: nexus
+    user: nexus
+    plan: free
+
+services:
+  - type: web
+    name: nexus
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Wired automatically to the nexus-db instance above.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexus-db
+          property: connectionString
+      # Applied via drizzle-kit push on boot; set "false" to skip.
+      - key: MIGRATE_ON_START
+        value: "true"
+      # SPA static hosting: Express serves the built frontend from here.
+      - key: SERVE_STATIC_DIR
+        value: /app/artifacts/treasure-kc-nexus/dist
+      # --- Secrets: set these in the Render dashboard during blueprint setup ---
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: VITE_CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: VITE_CLERK_PROXY_URL
+        sync: false
+      - key: ALERT_WEBHOOK_URL
+        sync: false
+      - key: WEBHOOK_SUBSCRIBERS
+        sync: false
+      - key: PORTAL_WEBHOOK_SECRET
+        sync: false
