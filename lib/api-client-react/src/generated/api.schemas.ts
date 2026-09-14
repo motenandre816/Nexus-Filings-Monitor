@@ -101,6 +101,19 @@ export interface OutreachResponse {
   tone: string;
 }
 
+export interface WebhookConfig {
+  webhookUrl: string;
+  hasSecret: boolean;
+  status: string;
+}
+
+export interface WebhookTestResponse {
+  success: boolean;
+  message: string;
+  /** @nullable */
+  error?: string | null;
+}
+
 export type GetNewLlcsParams = {
   /**
    * State code (KS, MO, or ALL)

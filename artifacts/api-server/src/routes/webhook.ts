@@ -1,15 +1,16 @@
 import { Router, type IRouter } from "express";
 import { fireWebhook } from "../lib/webhook";
+import { env } from "../lib/env";
 
 const router: IRouter = Router();
 
 // GET /webhook/config - show current webhook configuration
 router.get("/webhook/config", async (req, res): Promise<void> => {
-  const baseUrl = process.env.PORTAL_WEBHOOK_URL || "https://portaltreasurekc.org";
-  const webhookPath = process.env.PORTAL_WEBHOOK_PATH || "/webhook/llcs";
+  const baseUrl = env.portalWebhookUrl;
+  const webhookPath = env.portalWebhookPath;
   res.json({
     webhookUrl: baseUrl.replace(/\/$/, "") + webhookPath,
-    hasSecret: !!process.env.PORTAL_WEBHOOK_SECRET,
+    hasSecret: !!env.portalWebhookSecret,
     status: "configured",
   });
 });

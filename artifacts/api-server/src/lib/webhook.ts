@@ -1,4 +1,5 @@
 import { logger } from "./logger";
+import { env } from "./env";
 
 export interface WebhookPayload {
   event: "new_llcs";
@@ -21,10 +22,10 @@ export interface WebhookPayload {
 const DEFAULT_WEBHOOK_PATHS = ["/webhook/llcs", "/api/webhook", "/webhook"];
 
 export async function fireWebhook(payload: WebhookPayload): Promise<void> {
-  const baseUrl = process.env.PORTAL_WEBHOOK_URL || "https://portaltreasurekc.org";
-  const webhookPath = process.env.PORTAL_WEBHOOK_PATH || "/webhook/llcs";
+  const baseUrl = env.portalWebhookUrl;
+  const webhookPath = env.portalWebhookPath;
   const fullUrl = baseUrl.replace(/\/$/, "") + webhookPath;
-  const secret = process.env.PORTAL_WEBHOOK_SECRET || "";
+  const secret = env.portalWebhookSecret ?? "";
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

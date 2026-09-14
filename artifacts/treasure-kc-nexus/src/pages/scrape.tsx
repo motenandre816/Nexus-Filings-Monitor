@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTriggerScrape, getGetDashboardStatsQueryKey, getGetLlcsQueryKey, getGetRecentActivityQueryKey, getGetLlcsByCityQueryKey } from "@workspace/api-client-react";
+import { useTriggerScrape, useTestWebhook, useGetWebhookConfig, getGetDashboardStatsQueryKey, getGetLlcsQueryKey, getGetRecentActivityQueryKey, getGetLlcsByCityQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,11 +15,13 @@ export default function ScrapeControl() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const triggerScrape = useTriggerScrape();
+  const testWebhook = useTestWebhook();
+  const { data: webhookConfig } = useGetWebhookConfig();
 
   const [state, setState] = useState("ALL");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [lastResult, setLastResult] = useState<{ found: number; stored: number; message: string } | null>(null);
-  const [pingStatus, setPingStatus] = useState<"idle" | "loading" | "success">("idle");
+  const [pingStatus, setPingStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const handleScrape = () => {
     triggerScrape.mutate({ data: { state, date } }, {
@@ -46,15 +48,24 @@ export default function ScrapeControl() {
 
   const handleTestPing = () => {
     setPingStatus("loading");
-    // Simulate webhook ping
-    setTimeout(() => {
-      setPingStatus("success");
-      toast({
-        title: "Webhook Ping Successful",
-        description: "Successfully reached portaltreasurekc.org",
-      });
-      setTimeout(() => setPingStatus("idle"), 3000);
-    }, 1000);
+    testWebhook.mutate(undefined, {
+      onSuccess: (response) => {
+        setPingStatus("success");
+        toast({
+          title: "Webhook Ping Successful",
+          description: response.message,
+        });
+        setTimeout(() => setPingStatus("idle"), 3000);
+      },
+      onError: () => {
+        setPingStatus("error");
+        toast({
+          title: "Webhook Ping Failed",
+          description: "Unable to reach the configured webhook endpoint.",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
@@ -148,7 +159,7 @@ export default function ScrapeControl() {
                   <Database className="w-5 h-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium text-sm">Treasure Portal</p>
-                    <p className="text-xs text-muted-foreground font-mono">portaltreasurekc.org/api/webhook</p>
+                    <p className="text-xs text-muted-foreground font-mono">{webhookConfig?.webhookUrl ?? "loading..."}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
@@ -162,12 +173,12 @@ export default function ScrapeControl() {
               <Button 
                 variant="outline" 
                 onClick={handleTestPing}
-                disabled={pingStatus === "loading"}
+                disabled={pingStatus === "loading" || testWebhook.isPending}
                 className="w-full gap-2"
                 data-testid="btn-test-ping"
               >
                 <Activity className="w-4 h-4" />
-                {pingStatus === "loading" ? "Pinging..." : pingStatus === "success" ? "Ping Successful!" : "Send Test Ping"}
+                {pingStatus === "loading" ? "Pinging..." : pingStatus === "success" ? "Ping Successful!" : pingStatus === "error" ? "Ping Failed" : "Send Test Ping"}
               </Button>
             </CardContent>
           </Card>

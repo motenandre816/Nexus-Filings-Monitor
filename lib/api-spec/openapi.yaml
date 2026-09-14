@@ -14,6 +14,8 @@ tags:
     description: LLC filing operations
   - name: dashboard
     description: Dashboard statistics
+  - name: webhook
+    description: Webhook integration
 paths:
   /healthz:
     get:
@@ -299,6 +301,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /webhook/config:
+    get:
+      operationId: getWebhookConfig
+      tags: [webhook]
+      summary: Get webhook configuration
+      responses:
+        "200":
+          description: Current webhook configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookConfig"
+
+  /webhook/test:
+    post:
+      operationId: testWebhook
+      tags: [webhook]
+      summary: Send a test webhook payload
+      responses:
+        "200":
+          description: Test webhook dispatched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookTestResponse"
+        "500":
+          description: Test webhook failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookTestResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -496,3 +530,30 @@ components:
         - llcName
         - message
         - tone
+
+    WebhookConfig:
+      type: object
+      properties:
+        webhookUrl:
+          type: string
+        hasSecret:
+          type: boolean
+        status:
+          type: string
+      required:
+        - webhookUrl
+        - hasSecret
+        - status
+
+    WebhookTestResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        error:
+          type: ["string", "null"]
+      required:
+        - success
+        - message

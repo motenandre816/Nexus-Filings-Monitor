@@ -22,3 +22,5 @@ export * from "./outreachResponse";
 export * from "./recruitBody";
 export * from "./scrapeBody";
 export * from "./scrapeResult";
+export * from "./webhookConfig";
+export * from "./webhookTestResponse";

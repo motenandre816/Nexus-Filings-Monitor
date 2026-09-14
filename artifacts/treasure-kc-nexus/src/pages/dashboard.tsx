@@ -73,7 +73,7 @@ export default function Dashboard() {
                   {newLlcs.map((llc) => (
                     <TableRow key={llc.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/llcs/${llc.id}`} className="hover:underline text-primary">
+                        <Link href={`/portal/llcs/${llc.id}`} className="hover:underline text-primary">
                           {llc.name}
                         </Link>
                       </TableCell>
@@ -100,7 +100,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-3">
                 <p>No new filings today yet — trigger a scrape to pull fresh data.</p>
-                <Link href="/scrape">
+                <Link href="/portal/scrape">
                   <Button variant="outline" size="sm">Go to Scrape Portal</Button>
                 </Link>
               </div>
@@ -211,7 +211,7 @@ export default function Dashboard() {
                         <FileText className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <div className="min-w-0">
-                        <Link href={`/llcs/${llc.id}`} className="text-sm font-medium text-card-foreground hover:underline truncate block" data-testid={`activity-llc-${llc.id}`}>
+                        <Link href={`/portal/llcs/${llc.id}`} className="text-sm font-medium text-card-foreground hover:underline truncate block" data-testid={`activity-llc-${llc.id}`}>
                           {llc.name}
                         </Link>
                         <div className="flex items-center gap-2 mt-1">

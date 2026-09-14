@@ -312,3 +312,21 @@ export const GenerateOutreachResponse = zod.object({
   message: zod.string(),
   tone: zod.string(),
 });
+
+/**
+ * @summary Get webhook configuration
+ */
+export const GetWebhookConfigResponse = zod.object({
+  webhookUrl: zod.string(),
+  hasSecret: zod.boolean(),
+  status: zod.string(),
+});
+
+/**
+ * @summary Send a test webhook payload
+ */
+export const TestWebhookResponse = zod.object({
+  success: zod.boolean(),
+  message: zod.string(),
+  error: zod.string().nullish(),
+});
