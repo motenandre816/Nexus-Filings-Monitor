@@ -1,4 +1,4 @@
-import { type AnyPgColumn, boolean, date, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, date, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const sourceRecordsTable = pgTable("source_records", {
   id: serial("id").primaryKey(),
@@ -17,9 +17,7 @@ export const businessesTable = pgTable(
     id: serial("id").primaryKey(),
     legalName: text("legal_name").notNull(),
     tradeName: text("trade_name"),
-    primaryLocationId: integer("primary_location_id").references((): AnyPgColumn => businessLocationsTable.id, {
-      onDelete: "set null",
-    }),
+    primaryLocationId: integer("primary_location_id"),
     firstFiledDate: date("first_filed_date"),
     lastSeen: timestamp("last_seen", { withTimezone: true }),
     operatingStatusConfidence: doublePrecision("operating_status_confidence"),

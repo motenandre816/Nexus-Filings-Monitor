@@ -57,11 +57,13 @@ export default function ScrapeControl() {
         });
         setTimeout(() => setPingStatus("idle"), 3000);
       },
-      onError: () => {
+      onError: (error) => {
         setPingStatus("error");
+        const errorData = (error as { data?: { message?: string; error?: string } } | null)?.data;
+        const details = errorData?.error ?? errorData?.message ?? "Unable to reach the configured webhook endpoint.";
         toast({
           title: "Webhook Ping Failed",
-          description: "Unable to reach the configured webhook endpoint.",
+          description: details,
           variant: "destructive",
         });
       },
