@@ -1,10 +1,20 @@
 import { createHash } from "node:crypto";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db, llcFilingsTable, sosRefreshRunsTable, type InsertLlcFiling, type SosRefreshRun } from "@workspace/db";
 import { logger } from "./logger";
 
-export type SosState = "KS" | "MO";
-export type RefreshTrigger = "manual" | "startup" | "scheduled";
+export type SosState = string;
+export type RefreshTrigger = "catchup" | "manual" | "startup" | "scheduled";
+
+/**
+ * States to monitor. Configure with SOS_STATES="KS,MO" (comma separated).
+ * Each state resolves its source URL from SOS_<STATE>_SOURCE_URL when set,
+ * otherwise from the defaults below.
+ */
+export const CONFIGURED_STATES: SosState[] = (process.env.SOS_STATES ?? "KS,MO")
+  .split(",")
+  .map((state) => state.trim().toUpperCase())
+  .filter((state) => state.length > 0);
 
 export type SourceRefreshResult = {
   state: SosState;
@@ -34,27 +44,55 @@ type ParsedSourceRow = {
   city?: string | null;
 };
 
-const SOURCE_CONFIGS: Record<SosState, SourceConfig> = {
-  KS: {
-    state: "KS",
-    label: "OpenSOSData Kansas SOS entity directory",
-    url: process.env.SOS_KS_SOURCE_URL ?? "https://opensosdata.com/entity/kansas/",
-    llcOnly: true,
-  },
-  MO: {
-    state: "MO",
-    label: "OpenSOSData Missouri SOS entity directory",
-    url: process.env.SOS_MO_SOURCE_URL ?? "https://opensosdata.com/entity/missouri/",
-    llcOnly: true,
-  },
+const DEFAULT_SOURCE_URLS: Record<string, string> = {
+  KS: "https://opensosdata.com/entity/kansas/",
+  MO: "https://opensosdata.com/entity/missouri/",
 };
 
+function sourceConfigFor(state: SosState): SourceConfig {
+  const envUrl = process.env[`SOS_${state}_SOURCE_URL`];
+  const defaultUrl = DEFAULT_SOURCE_URLS[state];
+  if (!envUrl && !defaultUrl) {
+    throw new Error(
+      `No source URL configured for state ${state}. Set SOS_${state}_SOURCE_URL or add a default.`,
+    );
+  }
+  return {
+    state,
+    label: process.env[`SOS_${state}_LABEL`] ?? `SOS entity directory (${state})`,
+    url: envUrl ?? defaultUrl,
+    llcOnly: (process.env[`SOS_${state}_LLC_ONLY`] ?? "true").toLowerCase() !== "false",
+  };
+}
+
 const REQUEST_TIMEOUT_MS = 30_000;
+const SOURCE_MAX_ATTEMPTS = Number(process.env.SOS_SOURCE_MAX_ATTEMPTS ?? 3);
+const RETRY_BASE_DELAY_MS = 5_000;
+
+async function withRetry<T>(operation: () => Promise<T>, label: string): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= SOURCE_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (attempt < SOURCE_MAX_ATTEMPTS) {
+        const delay = RETRY_BASE_DELAY_MS * attempt;
+        logger.warn(
+          { err: error, label, attempt, nextAttemptInMs: delay },
+          "Attempt failed, retrying",
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
+}
 const MAX_SOURCE_BYTES = 8 * 1024 * 1024;
 const MAX_ROWS_PER_SOURCE = 2_000;
 
 export function getSosSourceConfig(state: SosState): SourceConfig {
-  return SOURCE_CONFIGS[state];
+  return sourceConfigFor(state);
 }
 
 function sourceUrlForDate(config: SourceConfig, date: string): string {
@@ -254,8 +292,11 @@ async function refreshSource(state: SosState, date: string): Promise<SourceRefre
   const sourceUrl = sourceUrlForDate(config, date);
   const startedAt = new Date();
   try {
-    const response = await fetchSource(sourceUrl);
-    const parsed = sourceRows(response.body, response.contentType, state, date);
+    const { body, contentType } = await withRetry(
+      () => fetchSource(sourceUrl),
+      `fetch ${state} source`,
+    );
+    const parsed = sourceRows(body, contentType, state, date);
     const filings = parsed.map((row) => toInsertFiling(state, row, date));
     const inserted: Array<{ id: number }> = [];
     for (const filing of filings) {
@@ -308,9 +349,23 @@ export async function runSosRefresh(
   return Promise.all(states.map((state) => refreshSource(state, date)));
 }
 
+/**
+ * Returns the date (YYYY-MM-DD, UTC) of the most recent successful refresh
+ * for a state, or null if the state has never succeeded.
+ */
+export async function getLastSuccessfulRunDate(state: SosState): Promise<string | null> {
+  const [run] = await db
+    .select()
+    .from(sosRefreshRunsTable)
+    .where(and(eq(sosRefreshRunsTable.state, state), eq(sosRefreshRunsTable.status, "success")))
+    .orderBy(desc(sosRefreshRunsTable.completedAt))
+    .limit(1);
+  return run ? new Date(run.completedAt).toISOString().split("T")[0] : null;
+}
+
 export async function getLatestSosRuns(): Promise<SosRefreshRun[]> {
   const latest: SosRefreshRun[] = [];
-  for (const state of ["KS", "MO"] as const) {
+  for (const state of CONFIGURED_STATES) {
     const [run] = await db
       .select()
       .from(sosRefreshRunsTable)

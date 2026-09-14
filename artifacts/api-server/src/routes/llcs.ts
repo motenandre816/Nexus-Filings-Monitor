@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, desc, ilike, and, or, sql, count } from "drizzle-orm";
 import { db, llcFilingsTable } from "@workspace/db";
 import { fireWebhook } from "../lib/webhook";
-import { runSosRefresh, type SosState } from "../lib/sos";
+import { CONFIGURED_STATES, runSosRefresh, type SosState } from "../lib/sos";
 import { requireAuth } from "../middlewares/requireAuth";
 import {
   GetLlcByIdParams,
@@ -175,11 +175,11 @@ router.post("/llcs/scrape", requireAuth, async (req, res): Promise<void> => {
   const stateParam = body.data.state ?? "ALL";
   const today = new Date().toISOString().split("T")[0];
   const dateStr = body.data.date ?? today;
-  if (stateParam !== "ALL" && stateParam !== "KS" && stateParam !== "MO") {
-    res.status(400).json({ error: "state must be KS, MO, or ALL" });
+  if (stateParam !== "ALL" && !CONFIGURED_STATES.includes(stateParam)) {
+    res.status(400).json({ error: `state must be ALL or one of: ${CONFIGURED_STATES.join(", ")}` });
     return;
   }
-  const statesToScrape: SosState[] = stateParam === "ALL" ? ["KS", "MO"] : [stateParam];
+  const statesToScrape: SosState[] = stateParam === "ALL" ? CONFIGURED_STATES : [stateParam];
   const sources = await runSosRefresh(statesToScrape, dateStr, "manual");
   const totalFound = sources.reduce((sum, source) => sum + source.found, 0);
   const totalStored = sources.reduce((sum, source) => sum + source.stored, 0);
