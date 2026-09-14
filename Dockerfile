@@ -1,7 +1,9 @@
 # Builds the full Nexus app: Express API + built SPA, served from one origin.
 # Used by CI (image build check) and Render (production deploy).
 
-FROM node:22-alpine
+# glibc (not alpine/musl): the lockfile was generated on glibc, so rollup/esbuild
+# native binaries for musl are not in it and installs would fail on alpine.
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
