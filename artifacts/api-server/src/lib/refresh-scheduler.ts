@@ -8,10 +8,17 @@ import {
   type SosState,
 } from "./sos";
 
-const DAILY_REFRESH_HOUR_UTC = Number(process.env.SOS_REFRESH_HOUR_UTC ?? 3);
 const DAY_MS = 24 * 60 * 60 * 1_000;
+
+/** Configured hour (UTC) of the daily refresh. */
+function dailyRefreshHourUtc(): number {
+  return Number(process.env.SOS_REFRESH_HOUR_UTC ?? 3);
+}
+
 /** How far back we are willing to backfill missed days on startup. */
-const CATCHUP_MAX_DAYS = Number(process.env.SOS_CATCHUP_MAX_DAYS ?? 7);
+function catchupMaxDays(): number {
+  return Number(process.env.SOS_CATCHUP_MAX_DAYS ?? 7);
+}
 
 function todayUtc(): string {
   return new Date().toISOString().split("T")[0];
@@ -21,9 +28,9 @@ function dateDaysAgo(days: number): string {
   return new Date(Date.now() - days * DAY_MS).toISOString().split("T")[0];
 }
 
-function nextRefreshDelay(now = new Date()): number {
+export function nextRefreshDelay(now = new Date()): number {
   const next = new Date(now);
-  next.setUTCHours(DAILY_REFRESH_HOUR_UTC, 0, 0, 0);
+  next.setUTCHours(dailyRefreshHourUtc(), 0, 0, 0);
   if (next.getTime() <= now.getTime()) next.setTime(next.getTime() + DAY_MS);
   return next.getTime() - now.getTime();
 }
@@ -38,7 +45,7 @@ export async function missingRefreshDates(state: SosState): Promise<string[]> {
   const today = todayUtc();
   if (lastSuccess && lastSuccess >= today) return [];
   const oldest = Math.min(
-    CATCHUP_MAX_DAYS,
+    catchupMaxDays(),
     lastSuccess ? daysBetween(lastSuccess, today) : 0,
   );
   if (!lastSuccess) {

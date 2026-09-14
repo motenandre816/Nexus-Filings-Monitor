@@ -30,6 +30,7 @@ Without it, alerts are log lines only.
 | --- | --- | --- |
 | `ALERT_WEBHOOK_URL` | — | JSON POST endpoint for operational alerts |
 | `ALERT_MAX_ATTEMPTS` | `3` | Alert delivery retries |
+| `ALERT_RETRY_BASE_DELAY_MS` | `2000` | Backoff between alert retries (multiplied by attempt) |
 
 ## Webhooks (outbound)
 
@@ -39,7 +40,8 @@ configured subscriber, each with independent retries.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `WEBHOOK_SUBSCRIBERS` | — | JSON array: `[{"name":"portal","url":"https://.../webhook/llcs","secret":"..."}]` |
-| `WEBHOOK_MAX_ATTEMPTS` | `3` | Delivery retries per subscriber (5s × attempt backoff) |
+| `WEBHOOK_MAX_ATTEMPTS` | `3` | Delivery retries per subscriber |
+| `WEBHOOK_RETRY_BASE_DELAY_MS` | `5000` | Backoff between subscriber retries (multiplied by attempt) |
 | `PORTAL_WEBHOOK_URL` | `https://portaltreasurekc.org` | Legacy single-destination fallback |
 | `PORTAL_WEBHOOK_PATH` | `/webhook/llcs` | Legacy path (joined to `PORTAL_WEBHOOK_URL`) |
 | `PORTAL_WEBHOOK_SECRET` | — | Legacy shared secret (sent as `X-Treasure-Secret` header) |

@@ -32,8 +32,13 @@ export interface WebhookDeliveryResult {
   error: string | null;
 }
 
-const DELIVERY_MAX_ATTEMPTS = Number(process.env.WEBHOOK_MAX_ATTEMPTS ?? 3);
-const RETRY_BASE_DELAY_MS = 5_000;
+function deliveryMaxAttempts(): number {
+  return Number(process.env.WEBHOOK_MAX_ATTEMPTS ?? 3);
+}
+
+function retryBaseDelayMs(): number {
+  return Number(process.env.WEBHOOK_RETRY_BASE_DELAY_MS ?? 5000);
+}
 
 /**
  * Resolves webhook subscribers.
@@ -97,7 +102,7 @@ async function deliver(
   }
 
   let lastError: string | null = null;
-  for (let attempt = 1; attempt <= DELIVERY_MAX_ATTEMPTS; attempt += 1) {
+  for (let attempt = 1; attempt <= deliveryMaxAttempts(); attempt += 1) {
     try {
       const response = await fetch(subscriber.url, {
         method: "POST",
@@ -124,14 +129,14 @@ async function deliver(
         "Webhook delivery failed",
       );
     }
-    if (attempt < DELIVERY_MAX_ATTEMPTS) await sleep(RETRY_BASE_DELAY_MS * attempt);
+    if (attempt < deliveryMaxAttempts()) await sleep(retryBaseDelayMs() * attempt);
   }
 
   return {
     subscriber: subscriber.name,
     url: subscriber.url,
     status: "failed",
-    attempts: DELIVERY_MAX_ATTEMPTS,
+    attempts: deliveryMaxAttempts(),
     error: lastError,
   };
 }

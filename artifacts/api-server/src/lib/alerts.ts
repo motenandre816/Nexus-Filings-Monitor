@@ -9,8 +9,17 @@ export type Alert = {
   details?: Record<string, unknown>;
 };
 
-const ALERT_WEBHOOK_URL = process.env.ALERT_WEBHOOK_URL ?? "";
-const ALERT_MAX_ATTEMPTS = Number(process.env.ALERT_MAX_ATTEMPTS ?? 3);
+function alertWebhookUrl(): string {
+  return process.env.ALERT_WEBHOOK_URL ?? "";
+}
+
+function alertMaxAttempts(): number {
+  return Number(process.env.ALERT_MAX_ATTEMPTS ?? 3);
+}
+
+function alertRetryBaseDelayMs(): number {
+  return Number(process.env.ALERT_RETRY_BASE_DELAY_MS ?? 2000);
+}
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -41,13 +50,14 @@ export async function sendAlert(alert: Alert): Promise<void> {
     logger.warn(payload, `ALERT [${alert.event}] ${alert.message}`);
   }
 
-  if (!ALERT_WEBHOOK_URL) {
+  const webhookUrl = alertWebhookUrl();
+  if (!webhookUrl) {
     return;
   }
 
-  for (let attempt = 1; attempt <= ALERT_MAX_ATTEMPTS; attempt += 1) {
+  for (let attempt = 1; attempt <= alertMaxAttempts(); attempt += 1) {
     try {
-      const response = await fetch(ALERT_WEBHOOK_URL, {
+      const response = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -61,6 +71,6 @@ export async function sendAlert(alert: Alert): Promise<void> {
     } catch (error) {
       logger.warn({ err: error, attempt }, "Alert webhook delivery failed");
     }
-    if (attempt < ALERT_MAX_ATTEMPTS) await sleep(2_000 * attempt);
+    if (attempt < alertMaxAttempts()) await sleep(alertRetryBaseDelayMs() * attempt);
   }
 }
