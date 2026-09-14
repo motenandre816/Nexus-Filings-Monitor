@@ -1,4 +1,4 @@
-import { boolean, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, date, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const sourceRecordsTable = pgTable("source_records", {
   id: serial("id").primaryKey(),
@@ -16,7 +16,7 @@ export const businessesTable = pgTable("businesses", {
   legalName: text("legal_name").notNull(),
   tradeName: text("trade_name"),
   primaryLocationId: integer("primary_location_id"),
-  firstFiledDate: text("first_filed_date"),
+  firstFiledDate: date("first_filed_date"),
   lastSeen: timestamp("last_seen", { withTimezone: true }),
   operatingStatusConfidence: doublePrecision("operating_status_confidence"),
 });
@@ -44,7 +44,7 @@ export const filingsTable = pgTable(
     filingId: text("filing_id").notNull(),
     legalName: text("legal_name").notNull(),
     status: text("status"),
-    filedDate: text("filed_date"),
+    filedDate: date("filed_date"),
     sourceRecordId: integer("source_record_id"),
   },
   (table) => [uniqueIndex("filings_state_filing_id_uidx").on(table.state, table.filingId)],

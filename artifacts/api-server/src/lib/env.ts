@@ -34,9 +34,6 @@ if (!["development", "test", "production"].includes(nodeEnvRaw)) {
   throw new Error(`Invalid NODE_ENV value: "${nodeEnvRaw}"`);
 }
 
-const databaseUrl = getRequiredEnv("DATABASE_URL");
-assertValidUrl("DATABASE_URL", databaseUrl);
-
 const portalWebhookUrl = getOptionalEnv("PORTAL_WEBHOOK_URL");
 if (portalWebhookUrl) {
   assertValidUrl("PORTAL_WEBHOOK_URL", portalWebhookUrl);
@@ -47,12 +44,8 @@ if (portalWebhookPath && !portalWebhookPath.startsWith("/")) {
   throw new Error('PORTAL_WEBHOOK_PATH must start with "/".');
 }
 
-const rawPort = getRequiredEnv("PORT");
-
 export const env = {
   nodeEnv: nodeEnvRaw as NodeEnv,
-  port: parsePort(rawPort),
-  databaseUrl,
   logLevel: process.env.LOG_LEVEL ?? "info",
   clerkSecretKey: getOptionalEnv("CLERK_SECRET_KEY"),
   grokApiKey: getOptionalEnv("GROK_API_KEY"),
@@ -60,3 +53,7 @@ export const env = {
   portalWebhookPath: portalWebhookPath ?? "/webhook/llcs",
   portalWebhookSecret: getOptionalEnv("PORTAL_WEBHOOK_SECRET"),
 };
+
+export function getValidatedPort(): number {
+  return parsePort(getRequiredEnv("PORT"));
+}

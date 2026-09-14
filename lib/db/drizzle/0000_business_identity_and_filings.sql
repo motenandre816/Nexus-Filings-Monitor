@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "businesses" (
   "legal_name" text NOT NULL,
   "trade_name" text,
   "primary_location_id" integer,
-  "first_filed_date" text,
+  "first_filed_date" date,
   "last_seen" timestamp with time zone,
   "operating_status_confidence" double precision
 );
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS "filings" (
   "filing_id" text NOT NULL,
   "legal_name" text NOT NULL,
   "status" text,
-  "filed_date" text,
+  "filed_date" date,
   "source_record_id" integer
 );
 

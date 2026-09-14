@@ -1,8 +1,8 @@
 import app from "./app";
 import { logger } from "./lib/logger";
-import { env } from "./lib/env";
+import { getValidatedPort } from "./lib/env";
 
-const port = env.port;
+const port = getValidatedPort();
 
 app.listen(port, (err) => {
   if (err) {
