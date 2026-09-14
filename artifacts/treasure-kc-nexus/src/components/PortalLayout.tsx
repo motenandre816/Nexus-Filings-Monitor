@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, Switch, Route } from "wouter";
 import { useClerk, useUser } from "@clerk/react";
-import { Menu, X, LayoutDashboard, Building2, DownloadCloud, LogOut, ChevronDown, Clock3 } from "lucide-react";
+import { Menu, X, LayoutDashboard, Building2, DownloadCloud, LogOut, ChevronDown, Clock3, BookOpenText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -11,6 +11,7 @@ import BrowseLlcs from "@/pages/llcs";
 import LlcDetail from "@/pages/llc-detail";
 import ScrapeControl from "@/pages/scrape";
 import IngestionStatusPage from "@/pages/ingestion-status";
+import MasteryGuidePage from "@/pages/mastery-guide";
 import NotFound from "@/pages/not-found";
 
 const NAVIGATION = [
@@ -18,6 +19,7 @@ const NAVIGATION = [
   { name: "LLC Database", href: "/portal/llcs", icon: Building2 },
   { name: "Scrape Control", href: "/portal/scrape", icon: DownloadCloud },
   { name: "Ingestion Status", href: "/portal/ingestion-status", icon: Clock3 },
+  { name: "Mastery Guide", href: "/portal/mastery-guide", icon: BookOpenText },
 ];
 
 export function PortalLayout() {
@@ -135,6 +137,7 @@ export function PortalLayout() {
             <Route path="/portal/llcs/:id" component={LlcDetail} />
             <Route path="/portal/scrape" component={ScrapeControl} />
             <Route path="/portal/ingestion-status" component={IngestionStatusPage} />
+            <Route path="/portal/mastery-guide" component={MasteryGuidePage} />
             <Route component={NotFound} />
           </Switch>
         </main>
