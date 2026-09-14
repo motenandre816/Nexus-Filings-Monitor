@@ -44,4 +44,21 @@ CREATE TABLE IF NOT EXISTS "filings" (
   "source_record_id" integer
 );
 
+ALTER TABLE "business_locations"
+  ADD CONSTRAINT "business_locations_business_id_fk"
+  FOREIGN KEY ("business_id") REFERENCES "businesses" ("id") ON DELETE cascade;
+
+ALTER TABLE "filings"
+  ADD CONSTRAINT "filings_business_id_fk"
+  FOREIGN KEY ("business_id") REFERENCES "businesses" ("id") ON DELETE cascade;
+
+ALTER TABLE "filings"
+  ADD CONSTRAINT "filings_source_record_id_fk"
+  FOREIGN KEY ("source_record_id") REFERENCES "source_records" ("id") ON DELETE set null;
+
+ALTER TABLE "businesses"
+  ADD CONSTRAINT "businesses_primary_location_id_fk"
+  FOREIGN KEY ("primary_location_id") REFERENCES "business_locations" ("id") ON DELETE set null;
+
+CREATE UNIQUE INDEX IF NOT EXISTS "businesses_primary_location_uidx" ON "businesses" ("primary_location_id");
 CREATE UNIQUE INDEX IF NOT EXISTS "filings_state_filing_id_uidx" ON "filings" ("state", "filing_id");

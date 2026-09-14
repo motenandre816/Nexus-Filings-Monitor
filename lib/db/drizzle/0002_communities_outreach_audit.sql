@@ -43,3 +43,31 @@ CREATE TABLE IF NOT EXISTS "audit_log" (
   "changes" jsonb,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+ALTER TABLE "communities"
+  ADD CONSTRAINT "communities_workspace_id_fk"
+  FOREIGN KEY ("workspace_id") REFERENCES "workspaces" ("id") ON DELETE cascade;
+
+ALTER TABLE "business_communities"
+  ADD CONSTRAINT "business_communities_business_id_fk"
+  FOREIGN KEY ("business_id") REFERENCES "businesses" ("id") ON DELETE cascade;
+
+ALTER TABLE "business_communities"
+  ADD CONSTRAINT "business_communities_community_id_fk"
+  FOREIGN KEY ("community_id") REFERENCES "communities" ("id") ON DELETE cascade;
+
+ALTER TABLE "outreach_messages"
+  ADD CONSTRAINT "outreach_messages_workspace_id_fk"
+  FOREIGN KEY ("workspace_id") REFERENCES "workspaces" ("id") ON DELETE cascade;
+
+ALTER TABLE "outreach_messages"
+  ADD CONSTRAINT "outreach_messages_business_id_fk"
+  FOREIGN KEY ("business_id") REFERENCES "businesses" ("id") ON DELETE cascade;
+
+ALTER TABLE "outreach_deliveries"
+  ADD CONSTRAINT "outreach_deliveries_message_id_fk"
+  FOREIGN KEY ("message_id") REFERENCES "outreach_messages" ("id") ON DELETE cascade;
+
+ALTER TABLE "audit_log"
+  ADD CONSTRAINT "audit_log_workspace_id_fk"
+  FOREIGN KEY ("workspace_id") REFERENCES "workspaces" ("id") ON DELETE cascade;

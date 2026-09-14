@@ -32,3 +32,15 @@ CREATE TABLE IF NOT EXISTS "engagements" (
   "notes" text,
   "updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+
+ALTER TABLE "members"
+  ADD CONSTRAINT "members_workspace_id_fk"
+  FOREIGN KEY ("workspace_id") REFERENCES "workspaces" ("id") ON DELETE cascade;
+
+ALTER TABLE "engagements"
+  ADD CONSTRAINT "engagements_workspace_id_fk"
+  FOREIGN KEY ("workspace_id") REFERENCES "workspaces" ("id") ON DELETE cascade;
+
+ALTER TABLE "engagements"
+  ADD CONSTRAINT "engagements_business_id_fk"
+  FOREIGN KEY ("business_id") REFERENCES "businesses" ("id") ON DELETE cascade;

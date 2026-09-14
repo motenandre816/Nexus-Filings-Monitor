@@ -1,4 +1,4 @@
-import { boolean, date, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { type AnyPgColumn, boolean, date, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const sourceRecordsTable = pgTable("source_records", {
   id: serial("id").primaryKey(),
@@ -11,19 +11,27 @@ export const sourceRecordsTable = pgTable("source_records", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const businessesTable = pgTable("businesses", {
-  id: serial("id").primaryKey(),
-  legalName: text("legal_name").notNull(),
-  tradeName: text("trade_name"),
-  primaryLocationId: integer("primary_location_id"),
-  firstFiledDate: date("first_filed_date"),
-  lastSeen: timestamp("last_seen", { withTimezone: true }),
-  operatingStatusConfidence: doublePrecision("operating_status_confidence"),
-});
+export const businessesTable = pgTable(
+  "businesses",
+  {
+    id: serial("id").primaryKey(),
+    legalName: text("legal_name").notNull(),
+    tradeName: text("trade_name"),
+    primaryLocationId: integer("primary_location_id").references((): AnyPgColumn => businessLocationsTable.id, {
+      onDelete: "set null",
+    }),
+    firstFiledDate: date("first_filed_date"),
+    lastSeen: timestamp("last_seen", { withTimezone: true }),
+    operatingStatusConfidence: doublePrecision("operating_status_confidence"),
+  },
+  (table) => [uniqueIndex("businesses_primary_location_uidx").on(table.primaryLocationId)],
+);
 
 export const businessLocationsTable = pgTable("business_locations", {
   id: serial("id").primaryKey(),
-  businessId: integer("business_id").notNull(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   addressType: text("address_type").notNull(),
   address: text("address").notNull(),
   city: text("city"),
@@ -39,13 +47,17 @@ export const filingsTable = pgTable(
   "filings",
   {
     id: serial("id").primaryKey(),
-    businessId: integer("business_id").notNull(),
+    businessId: integer("business_id")
+      .notNull()
+      .references(() => businessesTable.id, { onDelete: "cascade" }),
     state: text("state").notNull(),
     filingId: text("filing_id").notNull(),
     legalName: text("legal_name").notNull(),
     status: text("status"),
     filedDate: date("filed_date"),
-    sourceRecordId: integer("source_record_id"),
+    sourceRecordId: integer("source_record_id").references(() => sourceRecordsTable.id, {
+      onDelete: "set null",
+    }),
   },
   (table) => [uniqueIndex("filings_state_filing_id_uidx").on(table.state, table.filingId)],
 );
@@ -71,15 +83,21 @@ export const workspacesTable = pgTable("workspaces", {
 
 export const membersTable = pgTable("members", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").notNull(),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspacesTable.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull(),
   role: text("role").notNull(),
 });
 
 export const engagementsTable = pgTable("engagements", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").notNull(),
-  businessId: integer("business_id").notNull(),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspacesTable.id, { onDelete: "cascade" }),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   status: text("status").notNull(),
   notes: text("notes"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -87,7 +105,9 @@ export const engagementsTable = pgTable("engagements", {
 
 export const communitiesTable = pgTable("communities", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").notNull(),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspacesTable.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   type: text("type").notNull(),
   region: text("region"),
@@ -95,16 +115,24 @@ export const communitiesTable = pgTable("communities", {
 
 export const businessCommunitiesTable = pgTable("business_communities", {
   id: serial("id").primaryKey(),
-  businessId: integer("business_id").notNull(),
-  communityId: integer("community_id").notNull(),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
+  communityId: integer("community_id")
+    .notNull()
+    .references(() => communitiesTable.id, { onDelete: "cascade" }),
   relationshipType: text("relationship_type").notNull(),
   verified: boolean("verified").notNull().default(false),
 });
 
 export const outreachMessagesTable = pgTable("outreach_messages", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").notNull(),
-  businessId: integer("business_id").notNull(),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspacesTable.id, { onDelete: "cascade" }),
+  businessId: integer("business_id")
+    .notNull()
+    .references(() => businessesTable.id, { onDelete: "cascade" }),
   draft: text("draft"),
   approved: boolean("approved").notNull().default(false),
   sentAt: timestamp("sent_at", { withTimezone: true }),
@@ -114,7 +142,9 @@ export const outreachMessagesTable = pgTable("outreach_messages", {
 
 export const outreachDeliveriesTable = pgTable("outreach_deliveries", {
   id: serial("id").primaryKey(),
-  messageId: integer("message_id").notNull(),
+  messageId: integer("message_id")
+    .notNull()
+    .references(() => outreachMessagesTable.id, { onDelete: "cascade" }),
   deliveryStatus: text("delivery_status").notNull(),
   error: text("error"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -122,7 +152,9 @@ export const outreachDeliveriesTable = pgTable("outreach_deliveries", {
 
 export const auditLogTable = pgTable("audit_log", {
   id: serial("id").primaryKey(),
-  workspaceId: integer("workspace_id").notNull(),
+  workspaceId: integer("workspace_id")
+    .notNull()
+    .references(() => workspacesTable.id, { onDelete: "cascade" }),
   userId: text("user_id").notNull(),
   action: text("action").notNull(),
   entityType: text("entity_type").notNull(),
