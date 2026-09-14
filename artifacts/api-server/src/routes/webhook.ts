@@ -1,16 +1,18 @@
 import { Router, type IRouter } from "express";
-import { fireWebhook } from "../lib/webhook";
+import { fireWebhook, getWebhookSubscribers } from "../lib/webhook";
 
 const router: IRouter = Router();
 
-// GET /webhook/config - show current webhook configuration
+// GET /webhook/config - show current webhook subscribers
 router.get("/webhook/config", async (req, res): Promise<void> => {
-  const baseUrl = process.env.PORTAL_WEBHOOK_URL || "https://portaltreasurekc.org";
-  const webhookPath = process.env.PORTAL_WEBHOOK_PATH || "/webhook/llcs";
+  const subscribers = getWebhookSubscribers().map((subscriber) => ({
+    name: subscriber.name,
+    url: subscriber.url,
+    hasSecret: !!subscriber.secret,
+  }));
   res.json({
-    webhookUrl: baseUrl.replace(/\/$/, "") + webhookPath,
-    hasSecret: !!process.env.PORTAL_WEBHOOK_SECRET,
-    status: "configured",
+    subscribers,
+    status: subscribers.length > 0 ? "configured" : "not-configured",
   });
 });
 
@@ -18,7 +20,7 @@ router.get("/webhook/config", async (req, res): Promise<void> => {
 router.post("/webhook/test", async (req, res): Promise<void> => {
   const today = new Date().toISOString().split("T")[0];
   try {
-    await fireWebhook({
+    const results = await fireWebhook({
       event: "new_llcs",
       timestamp: new Date().toISOString(),
       state: "ALL",
@@ -37,7 +39,11 @@ router.post("/webhook/test", async (req, res): Promise<void> => {
         },
       ],
     });
-    res.json({ success: true, message: "Test webhook fired to portaltreasurekc.org" });
+    res.json({
+      success: results.every((result) => result.status === "delivered"),
+      message: "Test webhook fired to all configured subscribers",
+      results,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: "Webhook test failed", error: String(err) });
   }
