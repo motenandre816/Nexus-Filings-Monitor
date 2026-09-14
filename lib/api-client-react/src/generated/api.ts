@@ -35,6 +35,7 @@ import type {
   ScrapeResult,
   WebhookConfig,
   WebhookTestResponse,
+  WorkerIngestionRunsResponse,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -1089,7 +1090,7 @@ export const testWebhook = async (
 };
 
 export const getTestWebhookMutationOptions = <
-  TError = ErrorType<WebhookTestResponse>,
+  TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1128,13 +1129,13 @@ export type TestWebhookMutationResult = NonNullable<
   Awaited<ReturnType<typeof testWebhook>>
 >;
 
-export type TestWebhookMutationError = ErrorType<WebhookTestResponse>;
+export type TestWebhookMutationError = ErrorType<unknown>;
 
 /**
  * @summary Send a test webhook payload
  */
 export const useTestWebhook = <
-  TError = ErrorType<WebhookTestResponse>,
+  TError = ErrorType<unknown>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -1152,3 +1153,82 @@ export const useTestWebhook = <
 > => {
   return useMutation(getTestWebhookMutationOptions(options));
 };
+
+/**
+ * @summary Get ingestion worker run status
+ */
+export const getGetWorkerIngestionRunsUrl = () => {
+  return `/api/worker/ingestion-runs`;
+};
+
+export const getWorkerIngestionRuns = async (
+  options?: RequestInit,
+): Promise<WorkerIngestionRunsResponse> => {
+  return customFetch<WorkerIngestionRunsResponse>(
+    getGetWorkerIngestionRunsUrl(),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkerIngestionRunsQueryKey = () => {
+  return [`/api/worker/ingestion-runs`] as const;
+};
+
+export const getGetWorkerIngestionRunsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+  TError = ErrorType<WebhookTestResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWorkerIngestionRunsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>
+  > = ({ signal }) => getWorkerIngestionRuns({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetWorkerIngestionRunsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkerIngestionRuns>>
+>;
+export type GetWorkerIngestionRunsQueryError = ErrorType<WebhookTestResponse>;
+
+/**
+ * @summary Get ingestion worker run status
+ */
+
+export function useGetWorkerIngestionRuns<
+  TData = Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+  TError = ErrorType<WebhookTestResponse>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkerIngestionRuns>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetWorkerIngestionRunsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

@@ -330,3 +330,50 @@ export const TestWebhookResponse = zod.object({
   message: zod.string(),
   error: zod.string().nullish(),
 });
+
+/**
+ * @summary Get ingestion worker run status
+ */
+export const GetWorkerIngestionRunsResponse = zod.object({
+  currentRun: zod.union([
+    zod.object({
+      id: zod.number(),
+      sourceId: zod.string(),
+      runAt: zod.string(),
+      recordsProcessed: zod.number(),
+      added: zod.number(),
+      updated: zod.number(),
+      failed: zod.number(),
+      errorMessage: zod.string().nullish(),
+      status: zod.string(),
+    }),
+    zod.null(),
+  ]),
+  lastRun: zod.union([
+    zod.object({
+      id: zod.number(),
+      sourceId: zod.string(),
+      runAt: zod.string(),
+      recordsProcessed: zod.number(),
+      added: zod.number(),
+      updated: zod.number(),
+      failed: zod.number(),
+      errorMessage: zod.string().nullish(),
+      status: zod.string(),
+    }),
+    zod.null(),
+  ]),
+  recentRuns: zod.array(
+    zod.object({
+      id: zod.number(),
+      sourceId: zod.string(),
+      runAt: zod.string(),
+      recordsProcessed: zod.number(),
+      added: zod.number(),
+      updated: zod.number(),
+      failed: zod.number(),
+      errorMessage: zod.string().nullish(),
+      status: zod.string(),
+    }),
+  ),
+});

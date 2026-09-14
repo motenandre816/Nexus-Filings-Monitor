@@ -16,6 +16,8 @@ tags:
     description: Dashboard statistics
   - name: webhook
     description: Webhook integration
+  - name: worker
+    description: Ingestion worker operations
 paths:
   /healthz:
     get:
@@ -326,6 +328,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WebhookTestResponse"
+
+  /worker/ingestion-runs:
+    get:
+      operationId: getWorkerIngestionRuns
+      tags: [worker]
+      summary: Get ingestion worker run status
+      responses:
+        "200":
+          description: Worker ingestion run snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkerIngestionRunsResponse"
         "500":
           description: Test webhook failed
           content:
@@ -557,3 +572,54 @@ components:
       required:
         - success
         - message
+
+    IngestionRun:
+      type: object
+      properties:
+        id:
+          type: integer
+        sourceId:
+          type: string
+        runAt:
+          type: string
+        recordsProcessed:
+          type: integer
+        added:
+          type: integer
+        updated:
+          type: integer
+        failed:
+          type: integer
+        errorMessage:
+          type: ["string", "null"]
+        status:
+          type: string
+      required:
+        - id
+        - sourceId
+        - runAt
+        - recordsProcessed
+        - added
+        - updated
+        - failed
+        - status
+
+    WorkerIngestionRunsResponse:
+      type: object
+      properties:
+        currentRun:
+          anyOf:
+            - $ref: "#/components/schemas/IngestionRun"
+            - type: "null"
+        lastRun:
+          anyOf:
+            - $ref: "#/components/schemas/IngestionRun"
+            - type: "null"
+        recentRuns:
+          type: array
+          items:
+            $ref: "#/components/schemas/IngestionRun"
+      required:
+        - currentRun
+        - lastRun
+        - recentRuns
